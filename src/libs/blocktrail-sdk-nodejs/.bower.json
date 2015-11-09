@@ -1,0 +1,27 @@
+{
+  "name": "blocktrail-sdk-nodejs",
+  "homepage": "https://github.com/blocktrail/blocktrail-sdk-nodejs",
+  "authors": [
+    "Ruben de Vries <ruben@rubensayshi.com>"
+  ],
+  "description": "BlockTrail's Developer Friendly API binding for NodeJS",
+  "main": "main.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "11381fb65d",
+  "_resolution": {
+    "type": "branch",
+    "branch": "wallets-v2",
+    "commit": "11381fb65d97be9c676a491be9066649407f5ade"
+  },
+  "_source": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git",
+  "_target": "wallets-v2",
+  "_originalSource": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git",
+  "_direct": true
+}

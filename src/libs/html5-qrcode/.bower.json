@@ -1,0 +1,13 @@
+{
+  "name": "html5-qrcode",
+  "homepage": "https://github.com/dwa012/html5-qrcode",
+  "_release": "7a4f701e7e",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "7a4f701e7e996daf44b213dc116ac3d58814a5ba"
+  },
+  "_source": "git://github.com/dwa012/html5-qrcode.git",
+  "_target": "*",
+  "_originalSource": "git://github.com/dwa012/html5-qrcode"
+}

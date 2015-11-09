@@ -1,0 +1,54 @@
+<html>
+<body>
+    <input id="walletIdentfier" type="text" placeholder="identifier" required="true" />
+    <input id="walletPassword" type="password" placeholder="password" required="true" />
+    <select id="walletVersion">
+        <option value="v1">V1</option>
+        <option value="v2" selected>V2</option>
+    </select>
+    <button onclick="createWallet()">create wallet</button>
+
+    <script src="../build/blocktrail-sdk-full.min.js"></script>
+    <script>
+        var blocktrail = window.blocktrailSDK;
+        blocktrail.debug.enable('*');
+
+        var client = blocktrail.BlocktrailSDK({
+            apiKey : "MY_APIKEY",
+            apiSecret : "MY_APISECRET",
+            testnet : true
+        });
+
+        function createWallet() {
+            var identifier = document.getElementById('walletIdentfier').value;
+            var password = document.getElementById('walletPassword').value;
+            var version = document.getElementById('walletVersion').value;
+
+            if (!identifier) {
+                alert("Missing identifier");
+                return;
+            }
+
+            if (!password) {
+                alert("Missing password");
+                return;
+            }
+
+            client.createNewWallet({
+                identifier: identifier,
+                passphrase: password,
+                keyIndex: 9999,
+                walletVersion: version
+            }, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
+                if (err) {
+                    return console.log("createNewWallet ERR", err);
+                }
+
+                console.log('primary mnemonic', primaryMnemonic);
+                console.log('backup mnemonic', backupMnemonic);
+                console.log('blocktrail pubkeys', blocktrailPubKeys);
+            });
+        }
+    </script>
+</body>
+</html>
