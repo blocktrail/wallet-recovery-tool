@@ -76,18 +76,17 @@ gulp.task('js:app', function(done) {
 });
 
 gulp.task('js:sdk', function(done) {
-
-        gulp.src([
-            "./src/lib/blocktrail-sdk/build/blocktrail-sdk-full.js"
-        ])
-            .pipe(concat('sdk.js'))
-            .pipe(gulpif(config.minify, uglify({
-                mangle: {
-                    except: ['Buffer', 'BigInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']
-                }
-            })))
-            .pipe(gulp.dest('./build/js/'))
-            .on('end', done);
+    gulp.src([
+        "./src/libs/blocktrail-sdk-nodejs/build/blocktrail-sdk-full.js"
+    ])
+        .pipe(concat('sdk.js'))
+        .pipe(gulpif(config.minify, uglify({
+            mangle: {
+                except: ['Buffer', 'BigInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']
+            }
+        })))
+        .pipe(gulp.dest('./build/js/'))
+        .on('end', done);
 });
 
 gulp.task('sass', function(done) {

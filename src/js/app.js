@@ -39,7 +39,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             name: "BlockTrail.com",
             value: "blocktrail_bitcoin_service",
             apiKeyRequired: true,
-            apiSecretRequired: false
+            apiSecretRequired: true
         },
         {
             name: "Chain.so API",
@@ -61,15 +61,64 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         },
     ];
 
+    /**
+     * backup data from a Wallet V1 Backup PDF (Developer wallets)
+     *
+     * walletVersion:       the version number of the created wallet
+     * primaryMnemonic:     the primary mnemonic, obtained from our backup pdf
+     * primaryPassphrase:   our wallet passphrase, as used to unlock the wallet when sending transactions
+     * backupMnemonic:      the backup mnemonic, obtained from our backup pdf
+     * blocktrailKeys:      an array of the blocktrail pubkeys objects as {keyIndex: keyIndex, path: path, pubkey: pubkey}
+     *                          keyIndex:   key index printed below each pubkey QR code on the backup pdf
+     *                          path:       path printed below each pubkey QR code on the backup pdf
+     *                          pubkey:     the contents of the QR code
+     */
+    $scope.backupDataV1 = {
+        walletVersion:      1,
+        primaryMnemonic:    null,
+        primaryPassphrase:  null,
+        backupMnemonic:     null,
+        blocktrailKeys: [
+            {keyIndex: 0, pubkey: null}
+        ]
+    };
+
+    /**
+     * backup data from a Wallet V2 Backup PDF (Consumer web and mobile wallets)
+     *
+     * walletVersion:               the version number of the created wallet
+     * encryptedPrimaryMnemonic:    the "Encrypted Primary Seed" mnemonic, obtained from our backup pdf (page 1)
+     * backupMnemonic:              the "backup seed" mnemonic, obtained from our backup pdf (page 1)
+     *
+     * passwordEncryptedSecretMnemonic: the "password encrypted secret" mnemonic, obtained from our backup pdf (page 2)
+     *
+     * password:                    our wallet password, as used to unlock the wallet when sending transactions
+     * blocktrailKeys:              an array of the blocktrail pubkeys objects as {keyIndex: keyIndex, path: path, pubkey: pubkey}
+     *                                  keyIndex:   key index printed below each pubkey QR code on the backup pdf (page 1)
+     *                                  path:       path printed below each pubkey QR code on the backup pdf (page 1)
+     *                                  pubkey:     the contents of the QR code (page 1)
+     */
+    $scope.backupDataV2 = {
+        walletVersion:      2,
+        backupMnemonic:     null,
+        password:           null,
+        encryptedPrimaryMnemonic:        null,
+        passwordEncryptedSecretMnemonic: null,
+        blocktrailKeys: [
+            {keyIndex: 0, pubkey: null}
+        ]
+    };
+
+    /*
     $scope.backupData = {
         primaryMnemonic: null,
         backupMnemonic: null,
         passphrase: null,
         btPubkeys: [
             {pubkey: null, keyIndex: 0}
-        ],
-        destinationAddress: null
+        ]
     };
+    */
     $scope.recoverySettings = {
         selectedNetwork: $scope.networks[0],
         network:    "btc",
@@ -183,22 +232,33 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.walletSweeper = null;
         $scope.foundFunds = null;
         $scope.signedTransaction = null;
-        $scope.backupData = {
-            primaryMnemonic: null,
-            backupMnemonic: null,
-            passphrase: null,
-            btPubkeys: [
-                {pubkey: null, keyIndex: 0}
-            ],
-            destinationAddress: null
+        $scope.backupDataV1 = {
+            walletVersion:      1,
+            primaryMnemonic:    null,
+            primaryPassphrase:  null,
+            backupMnemonic:     null,
+            blocktrailKeys: [
+                {keyIndex: 0, pubkey: null}
+            ]
         };
+        $scope.backupDataV2 = {
+            walletVersion:      2,
+            backupMnemonic:     null,
+            password:           null,
+            encryptedPrimaryMnemonic:        null,
+            passwordEncryptedSecretMnemonic: null,
+            blocktrailKeys: [
+                {keyIndex: 0, pubkey: null}
+            ]
+        };
+        $scope.recoverySettings.destinationAddress = null;
     };
 
     /**
      * add an aditional BlockTrail pubkey
      */
-    $scope.addPubKey = function() {
-        $scope.backupData.btPubkeys.push({pubkey: null, keyIndex: null});
+    $scope.addPubKey = function(pubKeysArray) {
+        pubKeysArray.push({pubkey: null, keyIndex: null});
     };
 
     $scope.scanPubKeyQR = function(btPubkey) {
@@ -225,16 +285,21 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.result = {working: true};
         try {
             //cleanup input
-            angular.forEach($scope.backupData.btPubkeys, function(btPubkey, index) {
+            angular.forEach($scope.backupDataV1.blocktrailKeys, function(btPubkey, index) {
                 if (!btPubkey.pubkey) {
-                    $scope.backupData.btPubkeys.splice(index, 1);
+                    $scope.backupDataV1.blocktrailKeys.splice(index, 1);
+                }
+            });
+            angular.forEach($scope.backupDataV2.blocktrailKeys, function(btPubkey, index) {
+                if (!btPubkey.pubkey) {
+                    $scope.backupDataV2.blocktrailKeys.splice(index, 1);
                 }
             });
 
             //create an instance of the chosen bitcoin data service
             switch ($scope.recoverySettings.dataService.value) {
                 case "blocktrail_bitcoin_service":
-                    var bitcoinDataClient = new blocktrail.BlocktrailBitcoinService({
+                    var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
                         apiKey: $scope.recoverySettings.apiKey,
                         apiSecret: $scope.recoverySettings.apiSecret,
                         network: $scope.recoverySettings.network,
@@ -255,14 +320,20 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                 logging: true
             };
 
-            $scope.walletSweeper = new blocktrail.WalletSweeper(
-                $scope.backupData.primaryMnemonic,
-                $scope.backupData.passphrase,
-                $scope.backupData.backupMnemonic,
-                $scope.backupData.btPubkeys,
-                bitcoinDataClient,
-                sweeperOptions
-            );
+
+            if ($scope.walletVersion == 1) {
+                $scope.walletSweeper = new blocktrailSDK.WalletSweeper(
+                    angular.extend({}, $scope.backupDataV1),
+                    bitcoinDataClient,
+                    sweeperOptions
+                );
+            } else {
+                $scope.walletSweeper = new blocktrailSDK.WalletSweeper(
+                    angular.extend({}, $scope.backupDataV2),
+                    bitcoinDataClient,
+                    sweeperOptions
+                );
+            }
             $scope.result = {};
             return true;
         } catch (err) {
@@ -283,7 +354,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         }
 
         $rootScope.clearLogs();
-        console.log('Generating addresses. Please wait...');
+        console.log('Generating addresses (this may take a while). Please wait...');
         $log.debug($rootScope.logs[0]);
         $scope.result = {working: true, message: "discovering funds..."};
         //delay to allow UI to update
@@ -301,6 +372,8 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     $rootScope.clearLogs();
                     $log.error(err);
                 });
+            }, function(update) {
+                console.log(update);
             });
         }, 200);
     };
