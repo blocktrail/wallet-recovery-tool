@@ -1,0 +1,160 @@
+@charset "UTF-8";
+
+@import "partials/fonts";
+@import "../libs/bootstrap/assets/stylesheets/bootstrap";
+@import "../libs/bootswatch-flatly/variables";
+@import "../libs/bootswatch-flatly/bootswatch";
+
+@import "partials/animations";
+
+
+html, body {
+    min-height: 100%;
+}
+
+* {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input,
+pre {
+  -webkit-user-select: initial !important;
+  user-select: initial !important;
+}
+
+.margin-t {
+    margin-top: 2rem;
+}
+.margin-b {
+    margin-bottom: 2rem;
+}
+.padding-t {
+    padding-top: 2rem;
+}
+.padding-b {
+    padding-bottom: 2rem;
+}
+
+textarea {
+    max-width: 100%;
+}
+
+.working {
+  cursor: progress;
+}
+
+.mainview {
+    min-height: 100%;
+    padding-top: 1rem;
+}
+
+/*------Theme Fixes-----*/
+legend {
+  border: none;
+}
+
+
+
+/*--- Home Screen ---*/
+section.welcome {
+
+}
+section.welcome h1 {
+    margin-bottom: 6rem;
+}
+
+
+/*--- Wallet Recovery ---*/
+section.wallet-recovery {
+    position: relative;
+    min-height: 400px;
+    padding-bottom: 8rem;
+}
+section.wallet-recovery header {
+    margin-bottom: 2.5rem;
+}
+section.wallet-recovery footer {
+    position: absolute;
+    width:  100%;
+    bottom: 0;
+    margin-bottom: 2rem;
+}
+section.wallet-recovery footer {
+    /*---alternative footer (fixed) ---*/
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 2rem;
+    margin-bottom: 0;
+    background: rgba(211, 211, 211, 0.95);
+}
+section.wallet-recovery footer button {
+    margin-left: 0.75rem;
+}
+
+.wallet-recovery .pubkey-group:not(:first-of-type) {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgba(0,0,0,0.15);
+}
+
+.step-3 .info {
+    position: relative;
+    margin-top: 3rem;
+}
+
+.step-3 .info .logs,
+.step-3 .info .results {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#QRScanner {
+  position: relative;
+  left: 0;
+  right: 0;
+  margin: auto;
+
+  video,
+  canvas {
+    position: relative;
+    z-index: 10;
+  }
+
+  &:before {
+    content: "Activating camera...";
+    display: block;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    width: 100%;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*---------animateions-----------*/

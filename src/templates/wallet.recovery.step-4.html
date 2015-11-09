@@ -1,0 +1,42 @@
+<section class="step-4">
+    <div class="text-center">
+        <h1>Recover Wallet Funds</h1>
+        <p>Recover the <b>{{ foundFunds.balance }}</b> Satoshi from this wallet to your address.</p>
+    </div>
+
+    <form name="inputForm" class="text-left margin-t" novalidate>
+        <div class="row">
+            <div class="col-xs-8 col-sm-6 col-lg-4 col-xs-offset-2 col-sm-offset-3 col-lg-offset-4">
+                <div class="form-group" ng-class="{'has-error':inputForm.address.$invalid && !inputForm.address.$pristine}">
+                    <label class="control-label">Your {{ network }} Address</label>
+                    <input type="text" class="form-control" required name="address" ng-model="backupData.destinationAddress" placeholder="recovery address">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 margin-t text-center">
+                <button class="btn btn-lg btn-success" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="signedTransaction" ng-click="recoverFunds(backupData.destinationAddress, inputForm)">Begin Recovery</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="info">
+        <div class="logs text-center" ng-show="result.working">
+            <small class="subdued">{{ logs[logs.length-1] }}</small>
+        </div>
+
+        <div class="results text-center" ng-show="!signedTransaction && result.complete">
+            <h3 class="text-danger">Recovery Failed</h3>
+            <p>
+                Your transaction could not be created.<br/>
+                {{ result.errors[0] }}
+            </p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <button class="btn btn-sm btn-success pull-right" ng-disabled="!signedTransaction"  ng-click="nextStep('finish')">next</button>
+    <button class="btn btn-sm btn-default pull-right" ng-disabled="result.working"  ng-click="prevStep('step_3')">back</button>
+</footer>

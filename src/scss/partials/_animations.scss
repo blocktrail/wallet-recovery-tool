@@ -1,0 +1,156 @@
+
+//---simple Hide-Show animation for ng-show and ng-hide---
+.animate-show,
+.animate-show-section {
+  &.ng-hide-add,
+  &.ng-hide-remove {
+    transition:0.5s linear all;
+    display:block!important;
+  }
+  &.ng-hide-add {
+    opacity:1;
+  }
+  &.ng-hide-add.ng-hide-add-active {
+    opacity:0;
+  }
+
+  &.ng-hide-remove {
+    opacity:0;
+  }
+  &.ng-hide-remove.ng-hide-remove-active {
+    opacity:1;
+    overflow: hidden;
+  }
+}
+.animate-show-section{
+  &.ng-hide-add {
+    height: 18.5rem;
+    overflow: hidden;
+  }
+  &.ng-hide-add.ng-hide-add-active {
+    //height: 0rem;
+    overflow: hidden;
+  }
+  &.ng-hide-remove.ng-hide-remove-active {
+    overflow: hidden;
+  }
+}
+
+//---simple Hide-Show animation for ng-if---
+.animate-if {
+}
+
+.animate-if.ng-enter, .animate-if.ng-leave {
+  -webkit-transition:opacity cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+  transition:opacity cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+}
+
+.animate-if.ng-enter,
+.animate-if.ng-leave.ng-leave-active {
+  opacity:0;
+}
+
+.animate-if.ng-leave,
+.animate-if.ng-enter.ng-enter-active {
+  opacity:1;
+}
+
+
+
+//---View animations---
+$view-change-speed:0.5s;
+.sidebar{
+  .animate[ui-view]{
+    &.ng-enter,
+    &.ng-leave {
+      position: absolute;
+      left: 0;
+      right: 0;
+      -webkit-transition:all .5s ease-in-out;
+      -moz-transition:all .5s ease-in-out;
+      -o-transition:all .5s ease-in-out;
+      transition:all .5s ease-in-out;
+    }
+
+    &.ng-enter {
+      opacity: 0;
+      -webkit-transform:scale3d(0.5, 0.5, 0.5);
+      -moz-transform:scale3d(0.5, 0.5, 0.5);
+      transform:scale3d(0.5, 0.5, 0.5);
+
+      .toggle-sidebar{
+        opacity:0;
+        transition:all 0s ease-in-out;
+      }
+    }
+
+    &.ng-enter-active {
+      opacity: 1;
+      -webkit-transform:scale3d(1, 1, 1);
+      -moz-transform:scale3d(1, 1, 1);
+      transform:scale3d(1, 1, 1);
+    }
+
+    &.ng-leave {
+      opacity: 1;
+      -webkit-transform:translate3d(0, 0, 0);
+      -moz-transform:translate3d(0, 0, 0);
+      transform:translate3d(0, 0, 0);
+
+      .toggle-sidebar{
+        opacity:0;
+        transition:all 0s ease-in-out;
+      }
+    }
+
+    &.ng-leave-active {
+      opacity: 0;
+      -webkit-transform:translate3d(100px, 0, 0);
+      -moz-transform:translate3d(100px, 0, 0);
+      transform:translate3d(100px, 0, 0);
+    }
+  }
+}
+
+.animate[ui-view]{
+  &.ng-enter,
+  &.ng-leave {
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    -webkit-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) $view-change-speed;
+    -moz-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) $view-change-speed;
+    -o-transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) $view-change-speed;
+    transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) $view-change-speed;
+
+  }
+
+  &.ng-enter {
+    opacity: 0;
+    -webkit-transition-delay: $view-change-speed/2;
+    transition-delay: $view-change-speed/2;
+  }
+
+  &.ng-enter-active {
+    opacity: 1;
+  }
+
+  &.ng-leave {
+    opacity: 1;
+  }
+
+  &.ng-leave-active {
+    opacity: 0;
+  }
+}
+
+.animate-enter {
+  -webkit-transition: 1s linear all; /* Chrome */
+  transition: 1s linear all;
+  opacity: 0;
+}
+
+.animate-enter.animate-enter-active {
+  opacity: 1;
+}

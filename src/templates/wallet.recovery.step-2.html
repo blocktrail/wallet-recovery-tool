@@ -1,0 +1,77 @@
+<section class="step-2">
+    <div class="row text-center">
+        <div class="col-lg-8 col-lg-offset-2">
+            <h1>Configure Recovery Settings</h1>
+            <p>Configure the recovery settings.</p>
+        </div>
+    </div>
+
+    <div class="row margin-t">
+        <form class="" name="inputForm" novalidate>
+            <div class="col-lg-8 col-lg-offset-2">
+                <div class="well bs-component">
+                    <fieldset>
+                        <legend>Bitcoin Data Service</legend>
+
+                        <div class="form-group" ng-class="{'has-error':inputForm.dataService.$invalid && !inputForm.dataService.$pristine}">
+                            <div class="col-lg-12">
+                                <label class="control-label">Service Provider</label>
+                                <select class="form-control" name="dataService"
+                                        required
+                                        ng-options="service as service.name for service in dataServices"
+                                        ng-model="recoverySettings.dataService">
+                                </select>
+                                <span class="help-block">Select a data service for discovering funds</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" ng-class="{'has-error':inputForm.apiKey.$invalid && !inputForm.apiKey.$pristine}" ng-show="recoverySettings.dataService.apiKeyRequired">
+                            <div class="col-sm-6">
+                                <label class="control-label">API Key</label>
+                                <input type="text" class="form-control" ng-required="recoverySettings.dataService.apiKeyRequired" name="apiKey" ng-model="recoverySettings.apiKey" placeholder="API Key">
+                            </div>
+                        </div>
+                        <div class="form-group" ng-class="{'has-error':inputForm.apiSecret.$invalid && !inputForm.apiSecret.$pristine}" ng-show="recoverySettings.dataService.apiSecretRequired">
+                            <div class="col-sm-6">
+                                <label class="control-label">API Secret</label>
+                                <input type="text" class="form-control" ng-required="recoverySettings.dataService.apiSecretRequired" name="apiSecret" ng-model="recoverySettings.apiSecret" placeholder="API Secret">
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <!-- bitcoin data service -->
+
+            <div class="col-lg-8 col-lg-offset-2">
+                <div class="well bs-component">
+                    <fieldset>
+                        <legend>Recovery Settings</legend>
+
+                        <div class="col-lg-6" ng-class="{'has-error':inputForm.network.$invalid && !inputForm.network.$pristine}">
+                            <label class="control-label">Network</label>
+                            <select class="form-control" name="network"
+                                    required
+                                    ng-options="network as network.name for network in networks"
+                                    ng-model="recoverySettings.selectedNetwork"
+                                    ng-change="recoverySettings.network = recoverySettings.selectedNetwork.value; recoverySettings.testnet = recoverySettings.selectedNetwork.testnet;">
+                            </select>
+                            <span class="help-block">Select the coin network of your wallet</span>
+                        </div>
+
+                        <div class="col-lg-6" ng-class="{'has-error':inputForm.sweepBatchSize.$invalid && !inputForm.sweepBatchSize.$pristine}">
+                            <label class="control-label">Scan Batch Size</label>
+                            <input class="form-control" type="number" min="1" max="500" step="1" required name="sweepBatchSize" ng-model="recoverySettings.sweepBatchSize" placeholder="Batch ">
+                            <span class="help-block">how many addresses to scan in a batch</span>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <!-- recovery settings -->
+        </form>
+    </div>
+</section>
+
+<footer>
+    <button class="btn btn-sm btn-success pull-right" ng-click="nextStep('step_3', inputForm)">next</button>
+    <button class="btn btn-sm btn-default pull-right" ng-click="prevStep('step_1')">back</button>
+</footer>
