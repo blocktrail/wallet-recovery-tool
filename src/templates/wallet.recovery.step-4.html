@@ -1,7 +1,7 @@
 <section class="step-4">
     <div class="text-center">
         <h1>Recover Wallet Funds</h1>
-        <p>Recover the <b>{{ foundFunds.balance }}</b> Satoshi from this wallet to your address.</p>
+        <p>Recover the <b>{{ foundFunds.balance | toBtc }} BTC</b> from this wallet to your address.</p>
     </div>
 
     <form name="inputForm" class="text-left margin-t" novalidate>
@@ -23,7 +23,8 @@
 
     <div class="info">
         <div class="logs text-center" ng-show="result.working">
-            <small class="subdued">{{ logs[logs.length-1] }}</small>
+            <h4 class="text-center"><small>{{ result.progress.message }}...</small></h4>
+            <!--<small class="subdued">{{ logs[logs.length-1] }}</small>-->
         </div>
 
         <div class="results text-center" ng-show="!signedTransaction && result.complete">

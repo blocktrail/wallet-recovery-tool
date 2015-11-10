@@ -48,12 +48,25 @@ textarea {
     padding-top: 1rem;
 }
 
+.tabbed-well {
+    border-top: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
 /*------Theme Fixes-----*/
 legend {
   border: none;
 }
 
-
+.nav-tabs > li {
+    &> a {
+        //background-color: #EFEFEF;
+    }
+    &.active > a {
+        background-color: #F5F5F5;
+    }
+}
 
 /*--- Home Screen ---*/
 section.welcome {

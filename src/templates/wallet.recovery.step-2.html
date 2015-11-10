@@ -9,6 +9,7 @@
     <div class="row margin-t">
         <form class="" name="inputForm" novalidate>
             <div class="col-lg-8 col-lg-offset-2">
+
                 <div class="well bs-component">
                     <fieldset>
                         <legend>Bitcoin Data Service</legend>
@@ -61,7 +62,7 @@
                         <div class="col-lg-6" ng-class="{'has-error':inputForm.sweepBatchSize.$invalid && !inputForm.sweepBatchSize.$pristine}">
                             <label class="control-label">Scan Batch Size</label>
                             <input class="form-control" type="number" min="1" max="500" step="1" required name="sweepBatchSize" ng-model="recoverySettings.sweepBatchSize" placeholder="Batch ">
-                            <span class="help-block">how many addresses to scan in a batch</span>
+                            <span class="help-block">how many addresses to scan in a batch (max 500)<br><small>(use a higher number for older, frequently used wallets)</small></span>
                         </div>
                     </fieldset>
                 </div>

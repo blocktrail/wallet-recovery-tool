@@ -8,16 +8,42 @@
         </div>
     </div>
 
-    <div class="info">
-        <div class="logs text-center" ng-show="result.working">
-            <small class="subdued">{{ logs[logs.length-1] }}</small>
-        </div>
+    <div class="row">
+        <div class="col-lg-6 col-lg-offset-3 text-center">
+            <div class="info">
+                <div class="logs" ng-show="result.working">
+                    <ul class="list-unstyled list-inline">
+                        <li class="subdued">
+                            <label>Addresses Generated:</label>
+                            <span class="value">{{ result.progress.totalAddresses && result.progress.totalAddresses || 0 }}</span>
+                        </li>
+                        <li class="subdued">
+                            <label>Unspent Outputs:</label>
+                            <span class="value">{{ result.progress.totalUTXOs && result.progress.totalUTXOs || 0 }}</span>
+                        </li>
+                        <li class="subdued">
+                            <label>Total Balance:</label>
+                            <span class="value">{{ result.progress.totalBalance | toBtc }} BTC</span>
+                        </li>
+                    </ul>
+                    <h4 class="text-center"><small>{{ result.progress.message }}...</small></h4>
+                    <div class="subdued" ng-repeat="(address, value) in result.progress.addressUTXOs">
+                        <small><b>{{ value.utxos.length }}</b> output(s) found in <b>{{ address }}</b></small>
+                    </div>
+                    <!--<small class="subdued">{{ logs[logs.length-1] }}</small>-->
+                </div>
 
-        <div class="results text-center" ng-show="foundFunds">
-            <h3 ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ !foundFunds.balance && "No " || ""}}Funds Found</h3>
-            <p>
-                A balance of <b ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ foundFunds.balance }}</b> Satoshi was found after searching <b>{{ foundFunds.addressesSearched }}</b> addresses.
-            </p>
+                <div class="results text-center" ng-show="foundFunds">
+                    <h3 ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ !foundFunds.balance && "No " || ""}}Funds Found</h3>
+                    <p>
+                        A balance of <b ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ foundFunds.balance | toBtc }} BTC</b> was found after searching <b>{{ foundFunds.addressesSearched }}</b> addresses.
+                    </p>
+
+                    <div class="subdued" ng-repeat="(address, value) in foundFunds.utxos">
+                        <small><b>{{ value.utxos.length }}</b> output(s) found in <b>{{ address }}</b></small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>

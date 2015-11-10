@@ -2,82 +2,171 @@
     <div class="row text-center">
         <div class="col-lg-8 col-lg-offset-2">
             <h1>Enter Your Backup Data</h1>
-            <p class="text-left">Please enter the backup data for your Blocktrail wallet. <br/> You can get this from the backup document saved when you first created your wallet.</p>
+            <p class="text-left">
+                To begin your recovery, please enter the backup data for your Blocktrail wallet. You can find this on the backup document you saved when you first created your wallet.
+                <br>
+                If you have the .pdf file you can use the "import from backup" button.
+            </p>
+            <p class="text-left">
+                <small class="subdued"><i><b>NB:</b>Users of the mobile app have version 2 wallets, while users of the developers API have version 1 wallets</i></small>
+            </p>
         </div>
     </div>
 
     <div class="row margin-t">
-        <form class="form-horizontal" name="inputForm" novalidate>
-            <div class="col-lg-8 col-lg-offset-2">
-                <div class="well bs-component">
-                    <fieldset>
-                        <legend>Backup Data
-                            <button class="btn btn-sm btn-primary pull-right">Import From Backup</button>
-                        </legend>
+        <div class="col-lg-8 col-lg-offset-2">
+            <uib-tabset>
+                <uib-tab select="activeWalletVersion.v2=true" active="activeWalletVersion.v2">
+                    <uib-tab-heading>Wallet v2</uib-tab-heading>
+                    <form class="form-horizontal" name="forms.inputFormV2" novalidate>
+                        <div class="well tabbed-well">
+                            <fieldset>
+                                <legend>Backup Data
+                                    <button class="btn btn-sm btn-primary pull-right">Import from Backup</button>
+                                </legend>
 
-                        <div class="form-group" ng-class="{'has-error':inputForm.primaryMnemonic.$invalid && !inputForm.primaryMnemonic.$pristine}">
-                            <label class="col-lg-2 control-label">Primary Mnemonic</label>
-                            <div class="col-lg-10">
-                                <textarea class="form-control" rows="3" required name="primaryMnemonic" ng-model="backupDataV1.primaryMnemonic"></textarea>
-                                <span class="help-block">e.g. plug employ detail flee ethics junior cover ...</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group" ng-class="{'has-error':inputForm.backupMnemonic.$invalid && !inputForm.backupMnemonic.$pristine}">
-                            <label class="col-lg-2 control-label">Backup Mnemonic</label>
-                            <div class="col-lg-10">
-                                <textarea class="form-control" rows="3" required name="backupMnemonic" ng-model="backupDataV1.backupMnemonic"></textarea>
-                                <span class="help-block">e.g. disorder husband build smart also alley uncle ...</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group" ng-class="{'has-error':inputForm.passphrase.$invalid && !inputForm.passphrase.$pristine}">
-                            <label class="col-lg-2 control-label">Wallet Password</label>
-                            <div class="col-lg-10">
-                                <input type="password" class="form-control" required name="passphrase" ng-model="backupDataV1.primaryPassphrase" placeholder="wallet password">
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            <!-- backup data input -->
-            <div class="col-lg-8 col-lg-offset-2">
-                <div class="well bs-component">
-                    <fieldset>
-                        <legend>
-                            Blocktrail Public Keys
-                            <button class="btn btn-sm btn-primary pull-right" ng-click="addPubKey(backupDataV1.blocktrailKeys)">+ Add Pubkey</button>
-                        </legend>
-
-                        <div class="pubkey-group" ng-repeat="btPubkey in backupDataV1.blocktrailKeys" ng-controller="innerFormCtrl" ng-form="innerForm">
-                            <div class="form-group" ng-class="{'has-error':innerForm.btPubkey.$invalid && !innerForm.btPubkey.$pristine}">
-                                <label class="col-lg-2 control-label">Blocktrail Pubkey</label>
-                                <div class="col-lg-10">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" ng-required="$index == 0" name="btPubkey" ng-model="btPubkey.pubkey">
-                                        <span class="input-group-btn">
-                                            <a href class="btn btn-default" type="button" ng-click="scanPubKeyQR(btPubkey)">Scan QR</a>
-                                        </span>
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV2.encryptedPrimaryMnemonic.$invalid && !forms.inputFormV2.encryptedPrimaryMnemonic.$pristine}">
+                                    <label class="col-lg-2 control-label">Encrypted Primary Seed</label>
+                                    <div class="col-lg-10">
+                                        <textarea class="form-control" rows="3" required name="encryptedPrimaryMnemonic" ng-model="backupDataV2.encryptedPrimaryMnemonic"></textarea>
+                                        <span class="help-block">Find this on page 1. e.g. fat arena brown skull echo quiz diesel beach ...</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group" ng-class="{'has-error':innerForm.btPubkeyIndex.$invalid && !innerForm.btPubkeyIndex.$pristine}">
-                                <label class="col-lg-2 control-label">Key Index</label>
-                                <div class="col-lg-10">
-                                    <input type="number" step="1" min="0" class="form-control" ng-required="$index == 0 || btPubkey.pubkey" name="btPubkeyIndex" ng-model="btPubkey.keyIndex" placeholder="public key index">
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV2.backupMnemonic.$invalid && !forms.inputFormV2.backupMnemonic.$pristine}">
+                                    <label class="col-lg-2 control-label">Backup Seed</label>
+                                    <div class="col-lg-10">
+                                        <textarea class="form-control" rows="3" required name="backupMnemonic" ng-model="backupDataV2.backupMnemonic"></textarea>
+                                        <span class="help-block">Find this on page 1. e.g. disorder husband build smart also alley uncle ...</span>
+                                    </div>
                                 </div>
-                            </div>
+
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV2.passwordEncryptedSecretMnemonic.$invalid && !forms.inputFormV2.passwordEncryptedSecretMnemonic.$pristine}">
+                                    <label class="col-lg-2 control-label">Password Encrypted Secret</label>
+                                    <div class="col-lg-10">
+                                        <textarea class="form-control" rows="3" required name="passwordEncryptedSecretMnemonic" ng-model="backupDataV2.passwordEncryptedSecretMnemonic"></textarea>
+                                        <span class="help-block">Find this on page 2. e.g. fat arena brown skull echo quick damage ...</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV2.password.$invalid && !forms.inputFormV2.password.$pristine}">
+                                    <label class="col-lg-2 control-label">Wallet Password</label>
+                                    <div class="col-lg-10">
+                                        <input type="password" class="form-control" required name="password" ng-model="backupDataV2.password" placeholder="wallet password">
+                                        <span class="help-block">This is the password you used when you created the wallet.</span>
+                                    </div>
+                                </div>
+                            </fieldset>
                         </div>
-                    </fieldset>
-                </div>
-            </div>
-            <!-- blocktrail keys input -->
-        </form>
+                        <!-- backup data input -->
+                        <div class="well">
+                            <fieldset>
+                                <legend>
+                                    Blocktrail Public Keys
+                                    <button class="btn btn-sm btn-primary pull-right" ng-click="addPubKey(backupDataV2.blocktrailKeys)">+ Add Pubkey</button>
+                                </legend>
+
+                                <div class="pubkey-group" ng-repeat="btPubkey in backupDataV2.blocktrailKeys" ng-controller="innerFormCtrl" ng-form="innerForm">
+                                    <div class="form-group" ng-class="{'has-error':innerForm.btPubkey.$invalid && !innerForm.btPubkey.$pristine}">
+                                        <label class="col-lg-2 control-label">Blocktrail Pubkey</label>
+                                        <div class="col-lg-10">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" ng-required="$index == 0" name="btPubkey" ng-model="btPubkey.pubkey">
+                                                <span class="input-group-btn">
+                                                    <a href class="btn btn-default" type="button" ng-click="scanPubKeyQR(btPubkey)">Scan QR</a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" ng-class="{'has-error':innerForm.btPubkeyIndex.$invalid && !innerForm.btPubkeyIndex.$pristine}">
+                                        <label class="col-lg-2 control-label">Key Index</label>
+                                        <div class="col-lg-10">
+                                            <input type="number" step="1" min="0" class="form-control" ng-required="$index == 0 || btPubkey.pubkey" name="btPubkeyIndex" ng-model="btPubkey.keyIndex" placeholder="public key index">
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <!-- blocktrail keys input -->
+                    </form>
+                </uib-tab>
+                <!-- /wallets v1 -->
+
+                <uib-tab select="activeWalletVersion.v1=true" active="activeWalletVersion.v1">
+                    <uib-tab-heading>Wallet v1 (developers)</uib-tab-heading>
+                    <form class="form-horizontal" name="forms.inputFormV1" novalidate>
+                        <div class="well tabbed-well">
+                            <fieldset>
+                                <legend>Backup Data
+                                    <button class="btn btn-sm btn-primary pull-right">Import From Backup</button>
+                                </legend>
+
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV1.primaryMnemonic.$invalid && !forms.inputFormV1.primaryMnemonic.$pristine}">
+                                    <label class="col-lg-2 control-label">Primary Mnemonic</label>
+                                    <div class="col-lg-10">
+                                        <textarea class="form-control" rows="3" required name="primaryMnemonic" ng-model="backupDataV1.primaryMnemonic"></textarea>
+                                        <span class="help-block">e.g. plug employ detail flee ethics junior cover ...</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV1.backupMnemonic.$invalid && !forms.inputFormV1.backupMnemonic.$pristine}">
+                                    <label class="col-lg-2 control-label">Backup Mnemonic</label>
+                                    <div class="col-lg-10">
+                                        <textarea class="form-control" rows="3" required name="backupMnemonic" ng-model="backupDataV1.backupMnemonic"></textarea>
+                                        <span class="help-block">e.g. disorder husband build smart also alley uncle ...</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error':forms.inputFormV1.passphrase.$invalid && !forms.inputFormV1.passphrase.$pristine}">
+                                    <label class="col-lg-2 control-label">Wallet Password</label>
+                                    <div class="col-lg-10">
+                                        <input type="password" class="form-control" required name="passphrase" ng-model="backupDataV1.primaryPassphrase" placeholder="wallet password">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <!-- backup data input -->
+                        <div class="well">
+                            <fieldset>
+                                <legend>
+                                    Blocktrail Public Keys
+                                    <button class="btn btn-sm btn-primary pull-right" ng-click="addPubKey(backupDataV1.blocktrailKeys)">+ Add Pubkey</button>
+                                </legend>
+
+                                <div class="pubkey-group" ng-repeat="btPubkey in backupDataV1.blocktrailKeys" ng-controller="innerFormCtrl" ng-form="innerForm">
+                                    <div class="form-group" ng-class="{'has-error':innerForm.btPubkey.$invalid && !innerForm.btPubkey.$pristine}">
+                                        <label class="col-lg-2 control-label">Blocktrail Pubkey</label>
+                                        <div class="col-lg-10">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" ng-required="$index == 0" name="btPubkey" ng-model="btPubkey.pubkey">
+                                                <span class="input-group-btn">
+                                                    <a href class="btn btn-default" type="button" ng-click="scanPubKeyQR(btPubkey)">Scan QR</a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" ng-class="{'has-error':innerForm.btPubkeyIndex.$invalid && !innerForm.btPubkeyIndex.$pristine}">
+                                        <label class="col-lg-2 control-label">Key Index</label>
+                                        <div class="col-lg-10">
+                                            <input type="number" step="1" min="0" class="form-control" ng-required="$index == 0 || btPubkey.pubkey" name="btPubkeyIndex" ng-model="btPubkey.keyIndex" placeholder="public key index">
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <!-- blocktrail keys input -->
+                    </form>
+                </uib-tab>
+                <!-- /wallets v1 -->
+            </uib-tabset>
+        </div>
     </div>
 </section>
 
 <footer>
-    <button class="btn btn-sm btn-success pull-right" ng-click="nextStep('step_2', inputForm)">next</button>
+    <button class="btn btn-sm btn-success pull-right" ng-if="activeWalletVersion.v2" ng-click="nextStep('step_2', forms.inputFormV2)">next</button>
+    <button class="btn btn-sm btn-success pull-right" ng-if="activeWalletVersion.v1" ng-click="nextStep('step_2', forms.inputFormV1)">next</button>
     <button class="btn btn-sm btn-default pull-right" ng-click="goHome(true)">cancel</button>
 </footer>

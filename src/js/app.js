@@ -1,6 +1,7 @@
 'use strict';
 var app = angular.module('wallet-recovery', [
     'ui.bootstrap',
+    'wallet-recovery.filters',
     'wallet-recovery.services'
 ]);
 app.run(function($rootScope, $window, $log, $timeout) {
@@ -11,13 +12,18 @@ app.run(function($rootScope, $window, $log, $timeout) {
     };
 
     //hijack the console to get output messages from the recovery script
+    /*
     $window.console.log = function(message, extra) {
         $rootScope.$evalAsync(function() {
             $rootScope.logs.push(message);
         });
         $log.info(message);
     };
+    */
+
+
 });
+
 app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper) {
     $scope.templateList = {
         "welcome": "templates/welcome.html",
@@ -30,6 +36,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     };
     $scope.mainTemplate = $scope.templateList['welcome'];
     $scope.subTemplate = "";
+    $scope.forms = {};          //forms are used in directives with isolated scopes. need to keep them on this scope
     $scope.networks = [
         {name: "Bitcoin", value: "btc", testnet: false},
         {name: "Bitcoin Testnet", value: "tbtc", testnet: true}
@@ -126,11 +133,62 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         sweepBatchSize: 100,
         dataService: null,
         apiKey: null,
-        apiSecret: null
+        apiSecret: null,
+
+        destinationAddress: null
     };
 
+    $scope.activeWalletVersion = {
+        v1: false,
+        v2: true
+    };
     $scope.currentStep = 0;
     $scope.result = {};
+
+
+    /*--------------------debugging---------*/
+    /*
+    $scope.backupDataV1 = {
+        walletVersion:      1,
+        primaryMnemonic:    "plug employ detail flee ethics junior cover surround aspect slender venue faith devote ice sword camp pepper baby decrease mushroom feel endless cactus group deposit achieve cheese fire alone size enlist sail labor pulp venture wet gas object fruit dutch industry lend glad category between hidden april network",
+        primaryPassphrase:  "test",
+        backupMnemonic:     "disorder husband build smart also alley uncle buffalo scene club reduce fringe assault inquiry damage gravity receive champion coffee awesome conduct two mouse wisdom super lend dice toe emotion video analyst worry charge sleep bless pride motion oxygen congress jewel push bag ozone approve enroll valley picnic flight",
+        blocktrailKeys: [
+            {
+                keyIndex: 0,
+                path:     "M/0'",
+                pubkey:   'tpubD8UrAbbGkiJUnZY91vYMX2rj7zJRGH7snQ1g9H1waU39U74vE8HAfMCZdBByRJhVHq2B9X6uZcA2VaCJwnPN3zXLAPjETsfPGwAgWgEFvVk'
+            },
+            {
+                keyIndex: 9999,
+                path:     "M/9999'",
+                pubkey:   'tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ'
+            }
+        ]
+    };
+    $scope.backupDataV2 = {
+        walletVersion:                   2,
+        encryptedPrimaryMnemonic:        "fat arena brown skull echo quiz diesel beach gift olympic riot orphan sketch chief exchange height danger nasty clutch dune wing run drastic roast exist super toddler combine vault salute salad trap spider tenant draw million insane alley pelican spot alpha cheese version clog arm tomorrow slush plunge",
+        backupMnemonic:                  "aerobic breeze taste swear whip service bone siege tackle grow drip few tray clay crumble glass athlete bronze office roast learn tuition exist symptom",
+        passwordEncryptedSecretMnemonic: "fat arena brown skull echo quick damage toe later above jewel life void despair outer model annual various original stool answer vessel tired fragile visa summer step dash inform unit member social liberty valve tonight ocean pretty dial ability special angry like ancient unit shiver safe hospital ocean around poet album split they random decide ginger guilt mix evolve click avoid oven sad gospel worry chaos another lonely essence lucky health view",
+        password:                        "test",
+
+        blocktrailKeys: [
+            {
+                keyIndex: 0,
+                path:     "M/0'",
+                pubkey:   'xpub687DeMmb3SM2WUySJREg6F2vvRCQE1uSHcm5DY6HKyJe5oCczqavKHWUS8e5hDdx5bU4EWzFq9vSRSbi2rEYShdw6ectgbxAqmBgg8ZaqtC'
+            }
+        ]
+    };
+
+    $scope.recoverySettings.apiKey = "MY_APIKEY";
+    $scope.recoverySettings.apiSecret = "MY_APISECRET";
+    $scope.recoverySettings.sweepBatchSize = 20;
+    $scope.recoverySettings.dataService = $scope.dataServices[0];
+    */
+    /*---------------------------------------*/
+
 
     $scope.goHome = function(noPrompt) {
         if ($scope.result.working) {
@@ -213,14 +271,17 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
      * displays an alert popup - much nicer than native alert()
      * @param messageData
      */
-    $scope.alert = function(messageData) {
+    $scope.alert = function(messageData, modalSize) {
+        if (typeof modalSize == "undefined") {
+            modalSize = "sm";
+        }
         $modal.open({
             templateUrl: "templates/modal.alert.html",
             controller: "alertMessageCtrl",
             resolve: {
                 messageData: function() {return messageData;}
             },
-            size: 'sm'
+            size: modalSize
         });
     };
 
@@ -250,6 +311,10 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             blocktrailKeys: [
                 {keyIndex: 0, pubkey: null}
             ]
+        };
+        $scope.activeWalletVersion = {
+            v1: false,
+            v2: true
         };
         $scope.recoverySettings.destinationAddress = null;
     };
@@ -321,15 +386,15 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             };
 
 
-            if ($scope.walletVersion == 1) {
+            if ($scope.activeWalletVersion.v2) {
                 $scope.walletSweeper = new blocktrailSDK.WalletSweeper(
-                    angular.extend({}, $scope.backupDataV1),
+                    angular.extend({}, $scope.backupDataV2),
                     bitcoinDataClient,
                     sweeperOptions
                 );
             } else {
                 $scope.walletSweeper = new blocktrailSDK.WalletSweeper(
-                    angular.extend({}, $scope.backupDataV2),
+                    angular.extend({}, $scope.backupDataV1),
                     bitcoinDataClient,
                     sweeperOptions
                 );
@@ -337,8 +402,14 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             $scope.result = {};
             return true;
         } catch (err) {
+            if (err.message.search(/malformed utf-8 data/i) !== -1) {
+                err.message += " (check your password)";
+            }
+            if (err.message.search(/invalid checksum/i) !== -1) {
+                err.message += ". Either your mnemonics or blocktrail public key(s) are incorrect";
+            }
             $scope.result = {errors: [err.message]};
-            $scope.alert({subtitle: "Please check your settings", message: "Error: " + err.message});
+            $scope.alert({subtitle: "Please check your backup data and settings", message: "An error was encountered: " + err.message}, "md");
             $log.error("error encountered: ", err);
             return false;
         }
@@ -356,27 +427,35 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $rootScope.clearLogs();
         console.log('Generating addresses (this may take a while). Please wait...');
         $log.debug($rootScope.logs[0]);
-        $scope.result = {working: true, message: "discovering funds..."};
+        $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
         //delay to allow UI to update
         $timeout(function() {
-            $scope.walletSweeper.discoverWalletFunds().done(function(result) {
-                $scope.$apply(function() {
-                    $scope.result = {working: false, message: "Fund discovery complete"};
-                    $scope.foundFunds = result;
-                    $rootScope.clearLogs();
-                    $log.debug(result);
+            $scope.walletSweeper.discoverWalletFunds()
+                .progress(function(progress) {
+                    $scope.$apply(function() {
+                        $scope.result.progress = progress;
+                    });
+                    console.log(progress);
+                })
+                .then(function(result) {
+                    $scope.$apply(function() {
+
+                        $scope.result = {working: false, message: "Fund discovery complete"};
+                        $scope.foundFunds = result;
+                        $rootScope.clearLogs();
+                        $log.debug(result);
+                    });
+                })
+                .catch(function(err) {
+                    $scope.$apply(function() {
+                        $scope.result = {working: false, message: "Fund discovery failed", errors: [err.message]};
+                        $rootScope.clearLogs();
+                        $log.error(err);
+                    });
                 });
-            }, function(err) {
-                $scope.$apply(function() {
-                    $scope.result = {working: false, message: "Fund discovery failed", errors: [err.message]};
-                    $rootScope.clearLogs();
-                    $log.error(err);
-                });
-            }, function(update) {
-                console.log(update);
-            });
         }, 200);
     };
+
 
     /**
      * recover found funds into a destination address (just creates the signed transaction)
@@ -394,23 +473,49 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             return false;
         }
 
-        $rootScope.clearLogs();
-        $scope.result = {working: true, message: "generating transaction..."};
+        //validate destination address
+        var addr, err;
         try {
-            $scope.walletSweeper.sweepWallet(destinationAddress).done(function(transaction) {
-                $scope.$apply(function() {
-                    $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
-                    $scope.signedTransaction = transaction;
-                    $log.debug(transaction);
+            addr = blocktrailSDK.bitcoin.Address.fromBase58Check(destinationAddress);
+            if (addr.version !== $scope.walletSweeper.network.pubKeyHash && addr.version !== $scope.walletSweeper.network.scriptHash) {
+                err = new blocktrailSDK.InvalidAddressError("Invalid network");
+            }
+        } catch (_err) {
+            err = _err;
+        }
 
-                    $scope.nextStep('finish');
+        if (!addr || err) {
+            $scope.alert({subtitle: "Invalid Address", message: "The destination address is not valid for this network"}, "md");
+            $log.error("Invalid address [" + destinationAddress + "]" + (err ? " (" + err.message + ")" : ""));
+            return false;
+        }
+
+
+        $rootScope.clearLogs();
+        $scope.result = {working: true, message: "generating transaction...", progress: {message: 'generating transaction. please wait...'}};
+        try {
+            $scope.walletSweeper.sweepWallet(destinationAddress)
+                .progress(function(progress) {
+                    $scope.$apply(function() {
+                        $scope.result.progress = progress;
+                    });
+                    console.log(progress);
+                })
+                .then(function(transaction) {
+                    $scope.$apply(function() {
+                        $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
+                        $scope.signedTransaction = transaction;
+                        $log.debug(transaction);
+
+                        $scope.nextStep('finish');
+                    });
+                })
+                .catch(function(err) {
+                    $scope.$apply(function() {
+                        $scope.result = {working: false, complete: true, message: "Failed creating transaction", errors: [err.message]};
+                        $log.error(err);
+                    });
                 });
-            }, function(err) {
-                $scope.$apply(function() {
-                    $scope.result = {working: false, complete: true, message: "Failed creating transaction", errors: [err.message]};
-                    $log.error(err);
-                });
-            });
         } catch (err) {
             $scope.result = {working: false, complete: true, message: "Failed creating transaction", errors: [err.message]};
             $log.debug("error encountered: ", err);
