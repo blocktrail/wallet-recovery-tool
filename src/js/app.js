@@ -332,12 +332,20 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             function(importedData) {
                 if (importedData.walletVersion == 2) {
                     $scope.backupDataV2 = angular.extend({}, importedData);
+                    $scope.activeWalletVersion = {
+                        v1: false,
+                        v2: true
+                    };
                 } else {
                     $scope.backupDataV1 = angular.extend({}, importedData);
+                    $scope.activeWalletVersion = {
+                        v1: true,
+                        v2: false
+                    };
                 }
             },
-            function(result) {
-                //import failed or canceled
+            function(err) {
+                //import canceled
             }
         );
     };
@@ -615,11 +623,33 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
     $scope.backupFile = null;
     $scope.result = {working: false, message: ""};
 
+
     $scope.uploadFile = function(input) {
         $scope.$evalAsync(function() {
             $scope.result = {working: false, message: ""};
+            $scope.walletVersion = null;
+            $scope.dataV1 = {
+                walletVersion:      1,
+                walletIdentifier:   "",
+                primaryMnemonic:    "",
+                //primaryPassphrase:  null,
+                backupMnemonic:     "",
+                blocktrailKeys: [
+                    {keyIndex: 0, pubkey: null}
+                ]
+            };
+            $scope.dataV2 = {
+                walletVersion:      2,
+                walletIdentifier:   "",
+                backupMnemonic:     "",
+                //password:           null,
+                encryptedPrimaryMnemonic:        "",
+                passwordEncryptedSecretMnemonic: "",
+                blocktrailKeys: [
+                    {keyIndex: 0, pubkey: null}
+                ]
+            };
 
-            console.log('on file change');
             if (input.files.length > 0) {
                 var deferred = $q.defer();
 
@@ -655,32 +685,37 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         return PDFJS.getDocument(fileData);
                     })
                     .then(function(pdf) {
-                        //for each page...  @todo
-                        console.log('reading page 0');
-                        return pdf.getPage(2);
-                    })
-                    .then(function(page) {
-                        console.log('reading text content');
-                        console.log(page);
-                        return page.getTextContent();
-                    })
-                    .then(function(textContent) {
-                        //parse the text content to find v1 or v2 wallet data
-                        //loop over text content
-
-                        //version 1
-
-                        //version 2
-                        console.log(textContent);
+                        //process each page of the pdf
+                        var total = pdf.numPages;
+                        var promises = [];
+                        for (var i = 1; i<=total; i++) {
+                            console.log('parsing page ' + i);
+                            promises.push(pdf.getPage(i).then(function(page) {
+                                return $scope.parsePdfPage(page);
+                            }));
+                        }
+                        return $q.all(promises);
                     })
                     .then(function() {
+                        console.log('complete');
+                        console.log("wallet version: " + $scope.walletVersion);
+                        console.log($scope.dataV1);
+                        console.log($scope.dataV2);
+
+                        if ($scope.walletVersion) {
+                            var data = $scope.walletVersion == 2 ? $scope.dataV2 : $scope.dataV1;
+                            $scope.result = {working: false, success: true, message: "Backup data found", data: data};
+                        } else {
+                            $scope.result = {working: false, message: "No backup data found."};
+                        }
                         //reset the input
                         input.value = null;
                     })
                     .catch(function(err) {
                         //reset the input
-                        input.value = null;
                         console.error("failed to parse file: ", err);
+                        input.value = null;
+                        $scope.result = {working: false, message: "Could not process file."};
                     });
 
             } else {
@@ -691,39 +726,111 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         });
     };
 
-    $scope.test = function() {
-
+    /**
+     * loops over page items and places them in relevant data fields
+     *
+     * @param page
+     */
+    $scope.parsePdfPage = function (page) {
+        var dataKey = null;         //obj key to fill with next line of data
         var deferred = $q.defer();
-        //var fileReader = new FileReader();
-        //fileReader.onload = function()
-        //$scope.fileContent = reader.result
-        //$scope.$apply()
 
-        var doc = new jsPDF();
-        doc.text(20, 20, 'Hello world.');
-        doc.save('Test.pdf');
+        page.getTextContent()
+            .then(function(textContent) {
+                //loop over text content and act according to key phrases
+                console.log("---------------------------------------------------");
+                textContent.items.forEach(function(item, index) {
+                    console.log(item.str);
 
-        $timeout(function() {
-            angular.element('#QRScanner').html5_qrcode(function(data, stream) {
-                    // do something when code is read
-                    $modalInstance.close(data);
-                },
-                function(error, stream) {
-                    //show read errors
-                },
-                function(videoError, stream) {
-                    //the video stream could not be opened
-                    $modalInstance.dismiss(videoError);
-                }
-            );
-        }, 1800);
+                    //current line handlers: determin what to do with current line if anything special
+                    if (item.str.search(/Backup Seed/i) !== -1) {
+                        //end of "Encrypted Primary Seed" (v2)
+                        dataKey = null;
+                    } else if (item.str.search(/Encrypted Recovery Secret/i) !== -1) {
+                        //end of "Backup Seed" (v2)
+                        dataKey = null;
+                    } else if (item.str.search(/Wallet Recovery Instructions/i) !== -1) {
+                        //end of "Password Encrypted Secret" (v2)
+                        dataKey = null;
+                    } else if (item.str.search(/Backup Mnemonic/i) !== -1) {
+                        //end of "Primary Mnemonic" (v1)
+                        dataKey = null;
+                    } else if (item.str.search(/BlockTrail Public Keys/i) !== -1) {
+                        //end of "Backup Mnemonic" (v1)
+                        dataKey = null;
+                    } else if (item.str.search(/KeyIndex:/i) !== -1) {
+                        //blocktrail pub key info @todo
+                        //...
+                    }
+
+                    //store the current text according to previous line text
+                    switch (dataKey) {
+                        case "walletIdentifier":
+                            $scope.dataV1.walletIdentifier += item.str;
+                            $scope.dataV2.walletIdentifier += item.str;
+                            //reset key indicator
+                            dataKey = null;
+                            break;
+                        case "primaryMnemonic":
+                            $scope.dataV1.primaryMnemonic += item.str;
+                            break;
+                        case "backupMnemonic":
+                            $scope.dataV1.backupMnemonic += item.str;
+                            $scope.dataV2.backupMnemonic += item.str;
+                            break;
+                        case "encryptedPrimaryMnemonic":
+                            $scope.dataV2.encryptedPrimaryMnemonic += item.str;
+                            console.log('**storing first value: encryptedPrimaryMnemonic: ' + item.str);
+                            break;
+                        case "passwordEncryptedSecretMnemonic":
+                            $scope.dataV2.passwordEncryptedSecretMnemonic += item.str;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    //according to the current line, determine what should happen with the next line of text
+                    if (item.str.search(/Wallet Identifier/i) !== -1) {
+                        //next item is wallet identifier
+                        dataKey = "walletIdentifier";
+                    } else if (item.str.search(/Encrypted Primary Seed/i) !== -1) {
+                        //wallet v2 data
+                        $scope.walletVersion = 2;
+                        dataKey = "encryptedPrimaryMnemonic";
+                        console.log('**setting first key: encryptedPrimaryMnemonic: ' + item.str);
+                    } else if (item.str.search(/Backup Seed/i) !== -1) {
+                        //wallet v2 data
+                        dataKey = "backupMnemonic";
+                    } else if (item.str.search(/Encrypted Recovery Secret/i) !== -1) {
+                        //wallet v2 data - not used
+                        //dataKey = "encryptedRecoverySecretMnemonic";
+                    } else if (item.str.search(/Password Encrypted Secret/i) !== -1) {
+                        //wallet v2 data
+                        dataKey = "passwordEncryptedSecretMnemonic";
+                    } else if (item.str.search(/Primary Mnemonic/i) !== -1) {
+                        //wallet v1 data
+                        $scope.walletVersion = 1;
+                        dataKey = "primaryMnemonic";
+                    } else if (item.str.search(/Backup Mnemonic/i) !== -1) {
+                        //wallet v1 data
+                        dataKey = "backupMnemonic";
+                    }
+                });
+                console.log("---------------------------------------------------");
+                deferred.resolve();
+            })
+            .catch(function(err) {
+                deferred.reject(err);
+            });
+
+        return deferred.promise;
     };
 
     $scope.cancel = function() {
         $modalInstance.dismiss();
     };
-    $scope.ok = function() {
-        $modalInstance.close(null);
+    $scope.ok = function(data) {
+        $modalInstance.close(data);
     };
 });
 

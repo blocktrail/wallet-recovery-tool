@@ -1,15 +1,33 @@
 <div class="modal-header">
-    <h4 class="modal-title text-center">Import from Backup</h4>
+    <h4 class="modal-title text-center">Import from Backup PDF</h4>
 </div>
 <div class="modal-body text-center">
     <p class="margin-b">Select backup pdf of the wallet you wish to recover</p>
 
     <label class="file-upload">
         <input class="hidden" type="file" ng-model="backupPdf" onchange="angular.element(this).scope().uploadFile(this)"/>
-        <div class="btn btn-lg" ng-class="{'btn-success': fileSelected, 'btn-primary': !fileSelected }">Upload Backup PDF</div>
+        <div class="btn btn-lg" ng-class="{'btn-default': fileSelected, 'btn-primary': !fileSelected }">Upload Backup PDF</div>
     </label>
 
-    <p class="margin-t" ng-show="fileSelected">reading file: <b>{{ backupFile.name }}</b></p>
+    <p class="margin-t padding-t" ng-show="fileSelected">Reading file: <b>{{ backupFile.name }}</b></p>
+
+
+    <div class="row margin-t">
+        <div class="col-md-8 col-lg-10 col-md-offset-2 col-lg-offset-1">
+            <div class="logs text-left padding-t padding-b">
+                <hr>
+                <h4 class="text-center">{{ result.message }}</h4>
+                <div class="subdued" ng-repeat="(key, value) in result.data">
+                    <small><b>{{ key }}: </b> {{ value }}</small>
+                </div>
+                <!--<small class="subdued">{{ logs[logs.length-1] }}</small>-->
+            </div>
+            <div class="text-center" ng-show="result.success">
+                <hr>
+                <div class="btn btn-lg btn-success" ng-click="ok(result.data)">Use this backup</div>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="modal-footer">
     <button class="btn btn-default" ng-click="cancel()">Cancel</button>
