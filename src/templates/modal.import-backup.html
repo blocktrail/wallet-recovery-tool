@@ -17,7 +17,7 @@
             <div class="logs text-left padding-t padding-b">
                 <hr>
                 <h4 class="text-center">{{ result.message }}</h4>
-                <div class="subdued" ng-repeat="(key, value) in result.data">
+                <div class="subdued text-ellipsis" ng-repeat="(key, value) in result.data">
                     <small><b>{{ key }}: </b> {{ value }}</small>
                 </div>
             </div>

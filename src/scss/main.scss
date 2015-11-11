@@ -54,6 +54,11 @@ textarea {
     border-top-right-radius: 0;
 }
 
+.text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /*------Theme Fixes-----*/
 legend {
   border: none;

@@ -22,7 +22,7 @@ app.run(function($rootScope, $window, $log, $timeout) {
     */
 });
 
-app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper) {
+app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http) {
     $scope.templateList = {
         "welcome": "templates/welcome.html",
         "recover": "templates/wallet.recovery.html",
@@ -43,25 +43,15 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         {
             name: "BlockTrail.com",
             value: "blocktrail_bitcoin_service",
-            apiKeyRequired: true,
-            apiSecretRequired: true
+            apiKeyRequired: false,
+            apiSecretRequired: false,
+            defaultApiKey: "MY_APIKEY",
+            defaultApiSecret: "MY_APISECRET"
         },
         {
-            name: "Chain.so API",
-            value: "sochain_bitcoin_service",
-            apiKeyRequired: true,
-            apiSecretRequired: false
-        },
-        {
-            name: "BlockChain.info",
-            value: "blockchain_bitcoin_service",
-            apiKeyRequired: true,
-            apiSecretRequired: false
-        },
-        {
-            name: "Chain.com",
-            value: "chain_bitcoin_service",
-            apiKeyRequired: true,
+            name: "Bitpay Insight",
+            value: "insight_bitcoin_service",
+            apiKeyRequired: false,
             apiSecretRequired: false
         },
     ];
@@ -128,7 +118,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         selectedNetwork: $scope.networks[0],
         network:    "btc",
         testnet:    false,
-        sweepBatchSize: 100,
+        sweepBatchSize: 50,
         dataService: null,
         apiKey: null,
         apiSecret: null,
@@ -182,9 +172,9 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
 
     $scope.recoverySettings.apiKey = "MY_APIKEY";
     $scope.recoverySettings.apiSecret = "MY_APISECRET";
-    $scope.recoverySettings.sweepBatchSize = 20;
+    $scope.recoverySettings.sweepBatchSize = 5;
     $scope.recoverySettings.dataService = $scope.dataServices[0];
-    */
+    //*/
     /*---------------------------------------*/
 
 
@@ -394,14 +384,19 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             switch ($scope.recoverySettings.dataService.value) {
                 case "blocktrail_bitcoin_service":
                     var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
-                        apiKey: $scope.recoverySettings.apiKey,
-                        apiSecret: $scope.recoverySettings.apiSecret,
+                        apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
+                        apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
                         network: $scope.recoverySettings.network,
                         testnet: $scope.recoverySettings.testnet
                     });
                     break;
+                case "insight_bitcoin_service":
+                    var bitcoinDataClient = new blocktrailSDK.InsightBitcoinService({
+                        testnet: $scope.recoverySettings.testnet
+                    });
+                    break;
                 default:
-                    $scope.alert({subtitle: "Invalid bitcoin data service", message: "Only BlockTrail is currently supported"});
+                    $scope.alert({subtitle: "Invalid bitcoin data service", message: "Only BlockTrail and Bitpay Insight are currently supported"});
                     $scope.result = {working: false};
                     return false;
             }
@@ -550,6 +545,53 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             $log.debug("error encountered: ", err);
         }
     };
+
+
+    $scope.sendTx = function(service, txData) {
+        if ($scope.result.working) {
+            return false;
+        }
+        $scope.result.working = true;
+
+        switch (service) {
+            case 'blocktrail':
+                var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
+                    apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
+                    apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
+                    network: $scope.recoverySettings.network,
+                    testnet: $scope.recoverySettings.testnet
+                });
+                bitcoinDataClient.client.sendRawTransaction(txData.hex)
+                    .then(function(result) {
+                        console.log(result);
+                        //$scope.alert({subtitle: "Success", message: "Transaction successfully relayed via Blocktrail: " + result.hash}, 'md');
+                        $scope.alert({subtitle: "Success - Transaction relayed by Blocktrail", message: "Your transaction hash is " + result.hash}, 'md');
+                        $scope.result.working = false;
+                    })
+                    .catch(function(err) {
+                        $scope.alert({subtitle: "Failed to send Transaction", message: "An error was returned: " + err});
+                        $scope.result.working = false;
+                    });
+                break;
+            case 'insight':
+                var apiUrl = 'https://' + ($scope.recoverySettings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/tx/send';
+                var data = {rawtx: txData.hex};
+                $http.post(apiUrl, data)
+                    .then(function(result) {
+                        console.log(result);
+                        $scope.alert({subtitle: "Success - Transaction relayed by Insight", message: "Your transaction hash is " + result.data.txid}, 'md');
+                        $scope.result.working = false;
+                    })
+                    .catch(function(result) {
+                        console.error(result);
+                        $scope.alert({subtitle: "Failed to send Transaction", message: result.data});
+                        $scope.result.working = false;
+                    });
+                break;
+            default:
+                break;
+        }
+    }
 });
 
 
@@ -696,15 +738,14 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         switch ($scope.walletVersion) {
                             case 1:
                                 return pdf.getPage(1)
-                                .then(function(page) {
-                                    return $scope.getBlocktrailPublicKey(page, 1);
-                                })
-                                .then(function(blocktrailPublickey) {
-                                    $scope.dataV1.blocktrailKeys[0] = {
-                                        keyIndex: 0,
-                                        pubkey: blocktrailPublickey
-                                    };
-                                });
+                                    .then(function(page) {
+                                        return $scope.getBlocktrailPublicKey(page, 1);
+                                    })
+                                    .then(function(blocktrailPublickey) {
+                                        if ($scope.dataV1.blocktrailKeys.length > 0) {
+                                            $scope.dataV1.blocktrailKeys[0].pubkey = blocktrailPublickey;
+                                        }
+                                    });
 
                             case 2:
                                 return pdf.getPage(2)
@@ -712,10 +753,10 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                                         return $scope.getBlocktrailPublicKey(page, 1);
                                     })
                                     .then(function(blocktrailPublickey) {
-                                        $scope.dataV2.blocktrailKeys[0] = {
-                                            keyIndex: 0,
-                                            pubkey: blocktrailPublickey
-                                        };
+                                        if ($scope.dataV2.blocktrailKeys.length > 0) {
+                                            $scope.dataV2.blocktrailKeys[0].pubkey = blocktrailPublickey;
+                                        }
+
                                     });
 
                             default:
@@ -804,18 +845,18 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                             dataKey = null;
                             break;
                         case "primaryMnemonic":
-                            $scope.dataV1.primaryMnemonic += item.str;
+                            $scope.dataV1.primaryMnemonic += item.str + " ";
                             break;
                         case "backupMnemonic":
-                            $scope.dataV1.backupMnemonic += item.str;
-                            $scope.dataV2.backupMnemonic += item.str;
+                            $scope.dataV1.backupMnemonic += item.str + " ";
+                            $scope.dataV2.backupMnemonic += item.str + " ";
                             break;
                         case "encryptedPrimaryMnemonic":
-                            $scope.dataV2.encryptedPrimaryMnemonic += item.str;
+                            $scope.dataV2.encryptedPrimaryMnemonic += item.str + " ";
                             console.log('**storing first value: encryptedPrimaryMnemonic: ' + item.str);
                             break;
                         case "passwordEncryptedSecretMnemonic":
-                            $scope.dataV2.passwordEncryptedSecretMnemonic += item.str;
+                            $scope.dataV2.passwordEncryptedSecretMnemonic += item.str + " ";
                             break;
                         default:
                             break;
@@ -884,11 +925,6 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                     var img = result.data;
                     result.base64 = $scope.getBase64Image(img);
 
-                    /*
-                    document.body.innerHTML = "";
-                    document.body.appendChild(img);
-                    //*/
-
                     var def = $q.defer();
 
                     qrcode.callback = function(data) {
@@ -902,6 +938,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
             })
             .then(function(blocktrailPublickey) {
                 if (!blocktrailPublickey || blocktrailPublickey.match(/error/)) {
+                    console.error("Couldn't find Blocktrail Publickey");
                     // throw new Error("Couldn't find Blocktrail Publickey")
                     return null;
                 }
