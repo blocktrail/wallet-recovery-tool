@@ -20,8 +20,6 @@ app.run(function($rootScope, $window, $log, $timeout) {
         $log.info(message);
     };
     */
-
-
 });
 
 app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper) {
@@ -690,7 +688,39 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                                 return $scope.parsePdfPage(page);
                             }));
                         }
-                        return $q.all(promises);
+                        return $q.all(promises).then(function() {
+                            return pdf;
+                        });
+                    })
+                    .then(function(pdf) {
+                        switch ($scope.walletVersion) {
+                            case 1:
+                                return pdf.getPage(1)
+                                .then(function(page) {
+                                    return $scope.getBlocktrailPublicKey(page, 1);
+                                })
+                                .then(function(blocktrailPublickey) {
+                                    $scope.dataV1.blocktrailKeys[0] = {
+                                        keyIndex: 0,
+                                        pubkey: blocktrailPublickey
+                                    };
+                                });
+
+                            case 2:
+                                return pdf.getPage(2)
+                                    .then(function(page) {
+                                        return $scope.getBlocktrailPublicKey(page, 1);
+                                    })
+                                    .then(function(blocktrailPublickey) {
+                                        $scope.dataV2.blocktrailKeys[0] = {
+                                            keyIndex: 0,
+                                            pubkey: blocktrailPublickey
+                                        };
+                                    });
+
+                            default:
+                                throw new Error("invalid wallet version: " + $scope.walletVersion);
+                        }
                     })
                     .then(function() {
                         console.log('complete');
@@ -826,6 +856,95 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
             });
 
         return deferred.promise;
+    };
+
+    $scope.getBlocktrailPublicKey = function(page, imageIdx) {
+        return page.getOperatorList()
+            .then(function (ops) {
+                var imgIndexes = [];
+                ops.fnArray.forEach(function (fn, idx) {
+                    if (fn === PDFJS.OPS.paintJpegXObject) {
+                        imgIndexes.push(idx);
+                    }
+                });
+
+                var imgsInfo = imgIndexes.map(function (idx) {
+                    return ops.argsArray[idx];
+                });
+
+                if (imgsInfo.length <= imageIdx) {
+                    throw new Error("Not enough images on page to find Blocktrail Publickey!");
+                } else if (imgsInfo.length > imageIdx + 1) {
+                    throw new Error("Too many images on page to find Blocktrail Publickey!");
+                }
+
+                var qrImgInfo = imgsInfo[imageIdx];
+
+                return $scope.getImageData(qrImgInfo, page).then(function(result) {
+                    var img = result.data;
+                    result.base64 = $scope.getBase64Image(img);
+
+                    /*
+                    document.body.innerHTML = "";
+                    document.body.appendChild(img);
+                    //*/
+
+                    var def = $q.defer();
+
+                    qrcode.callback = function(data) {
+                        def.resolve(data);
+                    };
+
+                    qrcode.decode(result.base64);
+
+                    return def.promise;
+                });
+            })
+            .then(function(blocktrailPublickey) {
+                if (!blocktrailPublickey || blocktrailPublickey.match(/error/)) {
+                    // throw new Error("Couldn't find Blocktrail Publickey")
+                    return null;
+                }
+
+                return blocktrailPublickey;
+            })
+        ;
+    };
+
+    $scope.getBase64Image = function(img) {
+        // Create an empty canvas element
+        var canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Copy the image contents to the canvas
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        // Get the data-URL formatted image
+        // Firefox supports PNG and JPEG. You could check img.src to
+        // guess the original format, but be aware the using "image/jpg"
+        // will re-encode the image.
+        return canvas.toDataURL("image/png");
+    };
+
+    $scope.getImageData = function(info, page) {
+        var id = info[0];
+        var data = page.objs.getData(id);
+
+        if (data) {
+            return $q.when({info: info, data: data});
+        } else {
+            var def = $q.defer();
+
+            setTimeout(function() {
+                $scope.getImageData(info, page).then(function(result) {
+                    def.resolve(result);
+                });
+            }, 200);
+
+            return def.promise;
+        }
     };
 
     $scope.cancel = function() {
