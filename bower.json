@@ -15,11 +15,12 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "bootstrap-sass#3.3.5",
     "angular": "1.4.7",
     "angular-ui": "angular-ui-bootstrap-bower#0.14.3",
+    "blocktrail-sdk-nodejs": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git#wallets-v2",
+    "bootstrap": "bootstrap-sass#3.3.5",
     "html5-qrcode": "git://github.com/dwa012/html5-qrcode",
-    "qrcode-decoder-js": "",
-    "blocktrail-sdk-nodejs": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git#wallets-v2"
+    "pdfjs-dist": "~1.2.89",
+    "qrcode-decoder-js": ""
   }
 }

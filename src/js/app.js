@@ -320,6 +320,29 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     };
 
     /**
+     * import a backup document and parse to get backup data
+     */
+    $scope.importBackup = function() {
+
+        $modal.open({
+            templateUrl: "templates/modal.import-backup.html",
+            controller: "importBackupCtrl",
+            size: 'md'
+        }).result.then(
+            function(importedData) {
+                if (importedData.walletVersion == 2) {
+                    $scope.backupDataV2 = angular.extend({}, importedData);
+                } else {
+                    $scope.backupDataV1 = angular.extend({}, importedData);
+                }
+            },
+            function(result) {
+                //import failed or canceled
+            }
+        );
+    };
+
+    /**
      * add an aditional BlockTrail pubkey
      */
     $scope.addPubKey = function(pubKeysArray) {
@@ -584,6 +607,124 @@ app.controller('scanQRCtrl', function($scope, $modalInstance, $timeout, $log) {
     $scope.$on("$destroy", function() {
         angular.element('#QRScanner').html5_qrcode_stop();
     });
+});
+
+
+app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $log, $q) {
+    $scope.fileSelected = false;
+    $scope.backupFile = null;
+    $scope.result = {working: false, message: ""};
+
+    $scope.uploadFile = function(input) {
+        $scope.$evalAsync(function() {
+            $scope.result = {working: false, message: ""};
+
+            console.log('on file change');
+            if (input.files.length > 0) {
+                var deferred = $q.defer();
+
+                //file has been selected, load it
+                $scope.backupFile = input.files[0];
+                $scope.fileSelected = true;
+
+                $scope.result = {working: true, message: "reading file: " + $scope.backupFile.name};
+
+                console.log('file selected', $scope.backupFile, input.files, $scope.backupPdf);
+
+                var fileReader = new FileReader();
+                fileReader.onloadstart = function(event) {
+                    console.log('start', fileReader.readyState);
+                };
+                fileReader.onload = function(event) {
+                    console.log("loaded", event);
+                    //console.log(fileReader.result);
+                    deferred.resolve(fileReader.result);
+                };
+                fileReader.onerror = function(event) {
+                    console.error("file read error", fileReader.error);
+                    deferred.reject(fileReader.error);
+                };
+
+                //load the file
+                fileReader.readAsDataURL($scope.backupFile);
+
+                deferred.promise
+                    .then(function(fileData) {
+                        $scope.result = {working: true, message: "processing backup file..."};
+                        console.log('reading pdf');
+                        return PDFJS.getDocument(fileData);
+                    })
+                    .then(function(pdf) {
+                        //for each page...  @todo
+                        console.log('reading page 0');
+                        return pdf.getPage(2);
+                    })
+                    .then(function(page) {
+                        console.log('reading text content');
+                        console.log(page);
+                        return page.getTextContent();
+                    })
+                    .then(function(textContent) {
+                        //parse the text content to find v1 or v2 wallet data
+                        //loop over text content
+
+                        //version 1
+
+                        //version 2
+                        console.log(textContent);
+                    })
+                    .then(function() {
+                        //reset the input
+                        input.value = null;
+                    })
+                    .catch(function(err) {
+                        //reset the input
+                        input.value = null;
+                        console.error("failed to parse file: ", err);
+                    });
+
+            } else {
+                console.log('no change');
+                $scope.backupFile = null;
+                $scope.fileSelected = false;
+            }
+        });
+    };
+
+    $scope.test = function() {
+
+        var deferred = $q.defer();
+        //var fileReader = new FileReader();
+        //fileReader.onload = function()
+        //$scope.fileContent = reader.result
+        //$scope.$apply()
+
+        var doc = new jsPDF();
+        doc.text(20, 20, 'Hello world.');
+        doc.save('Test.pdf');
+
+        $timeout(function() {
+            angular.element('#QRScanner').html5_qrcode(function(data, stream) {
+                    // do something when code is read
+                    $modalInstance.close(data);
+                },
+                function(error, stream) {
+                    //show read errors
+                },
+                function(videoError, stream) {
+                    //the video stream could not be opened
+                    $modalInstance.dismiss(videoError);
+                }
+            );
+        }, 1800);
+    };
+
+    $scope.cancel = function() {
+        $modalInstance.dismiss();
+    };
+    $scope.ok = function() {
+        $modalInstance.close(null);
+    };
 });
 
 

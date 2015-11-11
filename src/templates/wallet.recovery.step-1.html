@@ -22,7 +22,7 @@
                         <div class="well tabbed-well">
                             <fieldset>
                                 <legend>Backup Data
-                                    <button class="btn btn-sm btn-primary pull-right">Import from Backup</button>
+                                    <button class="btn btn-sm btn-primary pull-right" ng-click="importBackup()">Import from Backup</button>
                                 </legend>
 
                                 <div class="form-group" ng-class="{'has-error':forms.inputFormV2.encryptedPrimaryMnemonic.$invalid && !forms.inputFormV2.encryptedPrimaryMnemonic.$pristine}">
@@ -99,7 +99,7 @@
                         <div class="well tabbed-well">
                             <fieldset>
                                 <legend>Backup Data
-                                    <button class="btn btn-sm btn-primary pull-right">Import From Backup</button>
+                                    <button class="btn btn-sm btn-primary pull-right" ng-click="importBackup()">Import from Backup</button>
                                 </legend>
 
                                 <div class="form-group" ng-class="{'has-error':forms.inputFormV1.primaryMnemonic.$invalid && !forms.inputFormV1.primaryMnemonic.$pristine}">

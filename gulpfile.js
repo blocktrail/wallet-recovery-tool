@@ -18,9 +18,12 @@ gulp.task('js:libs', function(done) {
             './src/libs/jquery/dist/jquery.min.js',
             './src/libs/angular/angular.js',
             './src/libs/angular-ui/ui-bootstrap-tpls.js',
+
             './src/libs/qrcode-decode-js/lib/qrcode-decodeer.js',
             './src/libs/html5-qrcode/lib/jsqrcode-combined.min.js',
             './src/libs/html5-qrcode/src/html5-qrcode.js',
+
+            './src/libs/pdfjs-dist/build/pdf.combined.js',
         ])
             .pipe(concat('libs.js'))
             .pipe(gulpif(config.minify, uglify()))

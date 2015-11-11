@@ -1,0 +1,16 @@
+<div class="modal-header">
+    <h4 class="modal-title text-center">Import from Backup</h4>
+</div>
+<div class="modal-body text-center">
+    <p class="margin-b">Select backup pdf of the wallet you wish to recover</p>
+
+    <label class="file-upload">
+        <input class="hidden" type="file" ng-model="backupPdf" onchange="angular.element(this).scope().uploadFile(this)"/>
+        <div class="btn btn-lg" ng-class="{'btn-success': fileSelected, 'btn-primary': !fileSelected }">Upload Backup PDF</div>
+    </label>
+
+    <p class="margin-t" ng-show="fileSelected">reading file: <b>{{ backupFile.name }}</b></p>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+</div>
