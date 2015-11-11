@@ -9,14 +9,14 @@
             <div class="col-xs-8 col-sm-6 col-lg-4 col-xs-offset-2 col-sm-offset-3 col-lg-offset-4">
                 <div class="form-group" ng-class="{'has-error':inputForm.address.$invalid && !inputForm.address.$pristine}">
                     <label class="control-label">Your {{ network }} Address</label>
-                    <input type="text" class="form-control" required name="address" ng-model="backupData.destinationAddress" placeholder="recovery address">
+                    <input type="text" class="form-control" required name="address" ng-model="recoverySettings.destinationAddress" placeholder="recovery address">
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-sm-12 margin-t text-center">
-                <button class="btn btn-lg btn-success" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="signedTransaction" ng-click="recoverFunds(backupData.destinationAddress, inputForm)">Begin Recovery</button>
+                <button class="btn btn-lg btn-success" ng-class="{working: result.working}" ng-disabled="result.working" ng-click="recoverFunds(recoverySettings.destinationAddress, inputForm)">Begin Recovery</button>
             </div>
         </div>
     </form>
