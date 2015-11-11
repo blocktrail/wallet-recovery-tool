@@ -634,9 +634,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                 primaryMnemonic:    "",
                 //primaryPassphrase:  null,
                 backupMnemonic:     "",
-                blocktrailKeys: [
-                    {keyIndex: 0, pubkey: null}
-                ]
+                blocktrailKeys: []
             };
             $scope.dataV2 = {
                 walletVersion:      2,
@@ -645,9 +643,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                 //password:           null,
                 encryptedPrimaryMnemonic:        "",
                 passwordEncryptedSecretMnemonic: "",
-                blocktrailKeys: [
-                    {keyIndex: 0, pubkey: null}
-                ]
+                blocktrailKeys: []
             };
 
             if (input.files.length > 0) {
@@ -759,8 +755,14 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         //end of "Backup Mnemonic" (v1)
                         dataKey = null;
                     } else if (item.str.search(/KeyIndex:/i) !== -1) {
-                        //blocktrail pub key info @todo
-                        //...
+                        //blocktrail pub key  - get key index
+                        var patt = new RegExp(/KeyIndex: ([0-9]*)/i);
+                        var regexResult = patt.exec(item.str);
+                        if (regexResult) {
+                            var newPubKey = {keyIndex: parseInt(regexResult[1]), pubkey: null};
+                            $scope.dataV1.blocktrailKeys.push(newPubKey);
+                            $scope.dataV2.blocktrailKeys.push(newPubKey);
+                        }
                     }
 
                     //store the current text according to previous line text
