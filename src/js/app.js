@@ -41,7 +41,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     ];
     $scope.dataServices = [
         {
-            name: "BlockTrail.com",
+            name: "Blocktrail.com",
             value: "blocktrail_bitcoin_service",
             apiKeyRequired: false,
             apiSecretRequired: false,
@@ -349,7 +349,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     };
 
     /**
-     * add an aditional BlockTrail pubkey
+     * add an aditional Blocktrail pubkey
      */
     $scope.addPubKey = function(pubKeysArray) {
         pubKeysArray.push({pubkey: null, keyIndex: null});
@@ -406,7 +406,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     });
                     break;
                 default:
-                    $scope.alert({subtitle: "Invalid bitcoin data service", message: "Only BlockTrail and Bitpay Insight are currently supported"});
+                    $scope.alert({subtitle: "Invalid bitcoin data service", message: "Only Blocktrail and Bitpay Insight are currently supported"});
                     $scope.result = {working: false};
                     return false;
             }
@@ -601,7 +601,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             default:
                 break;
         }
-    }
+    };
 });
 
 
@@ -677,6 +677,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         $scope.$evalAsync(function() {
             $scope.result = {working: false, message: ""};
             $scope.walletVersion = null;
+            $scope.blocktrailKeys = [];
             $scope.dataV1 = {
                 walletVersion:      1,
                 walletIdentifier:   "",
@@ -708,11 +709,10 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
 
                 var fileReader = new FileReader();
                 fileReader.onloadstart = function(event) {
-                    console.log('start', fileReader.readyState);
+                    console.log('started reading file', fileReader.readyState);
                 };
                 fileReader.onload = function(event) {
-                    console.log("loaded", event);
-                    //console.log(fileReader.result);
+                    console.log("file loaded", event);
                     deferred.resolve(fileReader.result);
                 };
                 fileReader.onerror = function(event) {
@@ -730,52 +730,50 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         return PDFJS.getDocument(fileData);
                     })
                     .then(function(pdf) {
-                        //process each page of the pdf
+                        //process each page of the pdf for text data
                         var total = pdf.numPages;
                         var promises = [];
                         for (var i = 1; i<=total; i++) {
-                            console.log('parsing page ' + i);
+                            console.log('parsing text for page ' + i);
+                            //text content
                             promises.push(pdf.getPage(i).then(function(page) {
-                                return $scope.parsePdfPage(page);
+                                return $scope.parsePageText(page);
                             }));
                         }
                         return $q.all(promises).then(function() {
+                            //pass on the pdf for further processing
                             return pdf;
                         });
                     })
                     .then(function(pdf) {
-                        switch ($scope.walletVersion) {
-                            case 1:
-                                return pdf.getPage(1)
-                                    .then(function(page) {
-                                        return $scope.getBlocktrailPublicKey(page, 1);
-                                    })
-                                    .then(function(blocktrailPublickey) {
-                                        if ($scope.dataV1.blocktrailKeys.length > 0) {
-                                            $scope.dataV1.blocktrailKeys[0].pubkey = blocktrailPublickey;
-                                        }
-                                    })
-                                    .catch(function(err) {
-                                        //non-critical errors can be ignored
-                                    });
-
-                            case 2:
-                                return pdf.getPage(2)
-                                    .then(function(page) {
-                                        return $scope.getBlocktrailPublicKey(page, 1);
-                                    })
-                                    .then(function(blocktrailPublickey) {
-                                        if ($scope.dataV2.blocktrailKeys.length > 0) {
-                                            $scope.dataV2.blocktrailKeys[0].pubkey = blocktrailPublickey;
-                                        }
-                                    })
-                                    .catch(function(err) {
-                                        //non-critical errors can be ignored
-                                    });
-
-                            default:
-                                throw new Error("invalid wallet version: " + $scope.walletVersion);
+                        //process each page of the pdf for pubkeys
+                        var total = pdf.numPages;
+                        var promises = [];
+                        for (var i = 1; i<=total; i++) {
+                            console.log('parsing images for page ' + i);
+                            //image content
+                            promises.push(pdf.getPage(i).then(function(page) {
+                                return $scope.parsePageImage(page);
+                            }));
                         }
+                        return $q.all(promises);
+                    })
+                    .then(function(allPageImages) {
+                        //set the pubkey data decoded from the images
+                        var pubKeyIndex = 0;
+                        allPageImages.forEach(function(pageImages, index) {
+                            //first image of each page is always the blocktrail logo, other indexes correspond to qrcode decode attempts
+                            pageImages.forEach(function(decodedData, index) {
+                                if (index > 0) {
+                                    if ($scope.walletVersion == 2) {
+                                        $scope.dataV2.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
+                                    } else {
+                                        $scope.dataV1.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
+                                    }
+                                    pubKeyIndex++;
+                                }
+                            });
+                        });
                     })
                     .then(function() {
                         console.log('complete');
@@ -812,7 +810,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
      *
      * @param page
      */
-    $scope.parsePdfPage = function (page) {
+    $scope.parsePageText = function (page) {
         var dataKey = null;         //obj key to fill with next line of data
         var deferred = $q.defer();
 
@@ -913,53 +911,59 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         return deferred.promise;
     };
 
-    $scope.getBlocktrailPublicKey = function(page, imageIdx) {
+    $scope.parsePageImage = function(page) {
         return page.getOperatorList()
             .then(function (ops) {
-                var imgIndexes = [];
-                ops.fnArray.forEach(function (fn, idx) {
+                var imageListPromises = [];
+                ops.fnArray.forEach(function(fn, idx) {
+                    //check if this operator is for an image
                     if (fn === PDFJS.OPS.paintJpegXObject) {
-                        imgIndexes.push(idx);
+                        var deferred = $q.defer();
+
+                        //using the image info, get the raw image data from the page (imgInfo = [objId, width, height])
+                        var imgInfo = ops.argsArray[idx];
+                        page.objs.get(imgInfo[0], function(data) {
+                            deferred.resolve(data);
+                        });
+
+                        imageListPromises.push(deferred.promise);
                     }
                 });
 
-                var imgsInfo = imgIndexes.map(function (idx) {
-                    return ops.argsArray[idx];
+                return $q.all(imageListPromises);
+            })
+            .then(function(imageList) {
+                //foreach image, get the image data and try to decode as a qrcode
+                var decodedImages = [];
+                imageList.forEach(function(img, index) {
+                    // get/create the canvas elm that qrcode uses internally
+                    var canvas = document.getElementById("qr-canvas");
+                    if (!canvas) {
+                        canvas = document.createElement("canvas");
+                        canvas.setAttribute('id', 'qr-canvas');
+                        canvas.style.display = 'none';
+                        document.body.appendChild(canvas);
+                    }
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // draw the image contents on the canvas
+                    var ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+
+                    try {
+                        decodedImages[index] = qrcode.decode();
+                    } catch (e) {
+                        decodedImages[index] = null;
+                        console.info('qrcode error: ', e);
+                    }
                 });
 
-                if (imgsInfo.length <= imageIdx) {
-                    throw new Error("Not enough images on page to find Blocktrail Publickey!");
-                } else if (imgsInfo.length > imageIdx + 1) {
-                    throw new Error("Too many images on page to find Blocktrail Publickey!");
-                }
-
-                var qrImgInfo = imgsInfo[imageIdx];
-
-                return $scope.getImageData(qrImgInfo, page).then(function(result) {
-                    var img = result.data;
-                    result.base64 = $scope.getBase64Image(img);
-
-                    var def = $q.defer();
-
-                    qrcode.callback = function(data) {
-                        def.resolve(data);
-                    };
-
-                    qrcode.decode(result.base64);
-
-                    return def.promise;
-                });
+                return decodedImages;
             })
-            .then(function(blocktrailPublickey) {
-                if (!blocktrailPublickey || blocktrailPublickey.match(/error/)) {
-                    console.error("Couldn't find Blocktrail Publickey");
-                    // throw new Error("Couldn't find Blocktrail Publickey")
-                    return null;
-                }
-
-                return blocktrailPublickey;
-            })
-        ;
+            .then(function(results) {
+                return results;
+            });
     };
 
     $scope.getBase64Image = function(img) {
@@ -976,26 +980,7 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         // Firefox supports PNG and JPEG. You could check img.src to
         // guess the original format, but be aware the using "image/jpg"
         // will re-encode the image.
-        return canvas.toDataURL("image/png");
-    };
-
-    $scope.getImageData = function(info, page) {
-        var id = info[0];
-        var data = page.objs.getData(id);
-
-        if (data) {
-            return $q.when({info: info, data: data});
-        } else {
-            var def = $q.defer();
-
-            setTimeout(function() {
-                $scope.getImageData(info, page).then(function(result) {
-                    def.resolve(result);
-                });
-            }, 200);
-
-            return def.promise;
-        }
+        return canvas.toDataURL("image/jpg");
     };
 
     $scope.cancel = function() {
