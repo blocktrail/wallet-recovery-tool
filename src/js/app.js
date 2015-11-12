@@ -232,6 +232,16 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
 
         //complete any secondary actions related to the current step
         switch ($scope.currentStep) {
+            case 1:
+                console.log(inputForm);
+                if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
+                    $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
+                    return false;
+                } else if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
+                    $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
+                    return false;
+                }
+                break;
             case 2:
                 $scope.foundFunds = null;
                 $scope.result = {};
@@ -657,7 +667,6 @@ app.controller('scanQRCtrl', function($scope, $modalInstance, $timeout, $log) {
     });
 });
 
-
 app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $log, $q) {
     $scope.fileSelected = false;
     $scope.backupFile = null;
@@ -745,6 +754,9 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                                         if ($scope.dataV1.blocktrailKeys.length > 0) {
                                             $scope.dataV1.blocktrailKeys[0].pubkey = blocktrailPublickey;
                                         }
+                                    })
+                                    .catch(function(err) {
+                                        //non-critical errors can be ignored
                                     });
 
                             case 2:
@@ -756,7 +768,9 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                                         if ($scope.dataV2.blocktrailKeys.length > 0) {
                                             $scope.dataV2.blocktrailKeys[0].pubkey = blocktrailPublickey;
                                         }
-
+                                    })
+                                    .catch(function(err) {
+                                        //non-critical errors can be ignored
                                     });
 
                             default:
