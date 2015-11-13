@@ -1,4 +1,4 @@
 {
     "MINIFY": true,
-    "RECOVERY_BACKEND": "https://recovery.blocktrail.com"
+    "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com"
 }
