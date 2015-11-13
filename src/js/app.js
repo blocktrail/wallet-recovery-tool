@@ -116,10 +116,13 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     */
     $scope.recoverySettings = {
         selectedNetwork: $scope.networks[0],
-        network:    "btc",
-        testnet:    false,
+
+        // these 2 are set from selectedNetwork
+        network: "btc",
+        testnet: false,
+
         sweepBatchSize: 50,
-        dataService: null,
+        dataService: $scope.dataServices[0],
         apiKey: null,
         apiSecret: null,
 
