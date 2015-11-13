@@ -236,7 +236,6 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         //complete any secondary actions related to the current step
         switch ($scope.currentStep) {
             case 1:
-                console.log(inputForm);
                 if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
                     $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
                     return false;
@@ -244,6 +243,19 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
                     return false;
                 }
+
+                try {
+                    var btPubKey = blocktrailSDK.bitcoin.HDNode.fromBase58($scope.backupDataV2.blocktrailKeys[0].pubkey);
+                    if (btPubKey.network === blocktrailSDK.bitcoin.networks.testnet) {
+                        $scope.recoverySettings.selectedNetwork = $scope.networks[1];
+                        $scope.recoverySettings.network = 'btc';
+                        $scope.recoverySettings.testnet = true;
+                    }
+                } catch (e) {
+                    console.log(e);
+                    $scope.alert({subtitle: "Invalid Blocktrail Public Key", message: "The provided Blocktrail pub key is invalid"});
+                }
+
                 break;
             case 2:
                 $scope.foundFunds = null;
