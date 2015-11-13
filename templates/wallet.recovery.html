@@ -1,0 +1,27 @@
+<section class="wallet-recovery">
+    <header>
+        <ol class="breadcrumb">
+            <li><a href="" ng-click="goHome()">Start</a></li>
+            <li class="active">
+                <a ng-if="currentStep >= 1" href="" ng-click="prevStep('step_1', 1)">Step 1</a>
+                <span ng-if="currentStep < 1">Step 1</span>
+            </li>
+            <li class="active">
+                <a ng-if="currentStep >= 2" href="" ng-click="prevStep('step_2', 2)">Step 2</a>
+                <span ng-if="currentStep < 2">Step 2</span>
+            </li>
+            <li class="active">
+                <a ng-if="currentStep >= 3" href="" ng-click="prevStep('step_3', 3)">Step 3</a>
+                <span ng-if="currentStep < 3">Step 3</span>
+            </li>
+            <li class="active">
+                <a ng-if="currentStep >= 4" href="" ng-click="prevStep('step_4', 4)">Step 4</a>
+                <span ng-if="currentStep < 4">Step 4</span>
+            </li>
+            <li class="active">
+                <span ng-class="{'text-success': currentStep == 5}">Finish</span>
+            </li>
+        </ol>
+    </header>
+    <div ng-include="subTemplate"></div>
+</section>

@@ -1,1 +1,15 @@
-hello world
+<!DOCTYPE html>
+<html ng-app="wallet-recovery">
+<head>
+    <title>Blocktrail - Wallet Recovery Tool</title>
+
+    <link rel="stylesheet" href="css/main.css">
+
+    <script src="js/sdk.js"></script>
+    <script src="js/libs.js"></script>
+    <script src="js/app.js"></script>
+</head>
+<body ng-controller="walletRecoveryCtrl" ng-class="{working: result.working}">
+    <div class="container mainview" ng-include="mainTemplate"></div>
+</body>
+</html>
