@@ -7,13 +7,50 @@ var template = require('gulp-template');
 var uglify = require('gulp-uglify');
 var gulpif = require('gulp-if');
 var notifier = require('node-notifier');
+var gitRev = require('git-rev');
+var fs = require('fs');
+var stripJsonComments = require('strip-json-comments');
+var Q = require('q');
+var _ = require('lodash');
 
 var isWatch = false;
-var config = {
+var options = {
     minify: process.argv.indexOf('--minify') !== -1 || process.argv.indexOf('--uglify') !== -1
 };
 
-gulp.task('js:libs', function(done) {
+var buildAppConfig = function() {
+    var def = Q.defer();
+
+    gitRev.branch(function(branch) {
+        gitRev.short(function(rev) {
+            var config = {
+                VERSION: branch + ":" + rev
+            };
+
+            ['./appconfig.json', './appconfig.default.json'].forEach(function(filename) {
+                var json = fs.readFileSync(filename);
+
+                if (json) {
+                    var data = JSON.parse(stripJsonComments(json.toString('utf8')));
+                    config = _.defaults(config, data);
+                }
+            });
+
+            def.resolve(config);
+        });
+    });
+
+    return def.promise;
+};
+
+var appConfig = Q.fcall(buildAppConfig);
+
+gulp.task('appconfig', function() {
+    appConfig = Q.fcall(buildAppConfig);
+});
+
+gulp.task('js:libs', ['appconfig'], function(done) {
+    appConfig.then(function(APPCONFIG) {
         gulp.src([
             './src/libs/jquery/dist/jquery.min.js',
             './src/libs/angular/angular.js',
@@ -23,17 +60,18 @@ gulp.task('js:libs', function(done) {
             './src/libs/html5-qrcode/lib/jsqrcode-combined.min.js',
             './src/libs/html5-qrcode/src/html5-qrcode.js',
 
-            './src/libs/pdfjs-dist/build/pdf.combined.js',
+            './src/libs/pdfjs-dist/build/pdf.combined.js'
         ])
             .pipe(concat('libs.js'))
-            .pipe(gulpif(config.minify, uglify()))
+            .pipe(gulpif(APPCONFIG.minify || options.minify, uglify()))
             .pipe(gulp.dest('./build/js/'))
             .on('end', done);
+    });
 });
 
 gulp.task('js:node-config', function(done) {
     gulp.src([
-        './src/js/nw-config.js',
+        './src/js/nw-config.js'
     ])
         .pipe(concat('nw-config.js'))
         .pipe(ngAnnotate())
@@ -49,64 +87,73 @@ gulp.task('js:node-config', function(done) {
                 throw e;
             }
         })
-        .pipe(gulpif(config.minify, uglify()))
+        .pipe(gulpif(options.minify, uglify()))
         .pipe(gulp.dest('./build/js/'))
         .on('end', done);
 });
 
-gulp.task('js:app', function(done) {
-    gulp.src([
-        './src/js/**/*.js',
-        '!./src/js/nw-config.js',
-    ])
-        .pipe(concat('app.js'))
-        .pipe(ngAnnotate())
-        .on('error', function(e) {
-            if (isWatch) {
-                notifier.notify({
-                    title: 'GULP watch + js:app + ngAnnotate ERR',
-                    message: e.message
-                });
-                console.error(e);
-                this.emit('end');
-            } else {
-                throw e;
-            }
-        })
-        .pipe(gulpif(config.minify, uglify()))
-        .pipe(gulp.dest('./build/js/'))
-        .on('end', done);
+gulp.task('js:app', ['appconfig'], function(done) {
+    appConfig.then(function(APPCONFIG) {
+        gulp.src([
+            './src/js/**/*.js',
+            '!./src/js/nw-config.js'
+        ])
+            .pipe(concat('app.js'))
+            .pipe(ngAnnotate())
+            .on('error', function (e) {
+                if (isWatch) {
+                    notifier.notify({
+                        title: 'GULP watch + js:app + ngAnnotate ERR',
+                        message: e.message
+                    });
+                    console.error(e);
+                    this.emit('end');
+                } else {
+                    throw e;
+                }
+            })
+            .pipe(gulpif(APPCONFIG.minify || options.minify, uglify()))
+            .pipe(gulp.dest('./build/js/'))
+            .on('end', done);
+    });
 });
 
-gulp.task('js:sdk', function(done) {
-    gulp.src([
-        "./src/libs/blocktrail-sdk-nodejs/build/blocktrail-sdk-full.js"
-    ])
-        .pipe(concat('sdk.js'))
-        .pipe(gulpif(config.minify, uglify({
-            mangle: {
-                except: ['Buffer', 'BigInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']
-            }
-        })))
-        .pipe(gulp.dest('./build/js/'))
-        .on('end', done);
+gulp.task('js:sdk', ['appconfig'], function(done) {
+    appConfig.then(function(APPCONFIG) {
+        gulp.src([
+            "./src/libs/blocktrail-sdk-nodejs/build/blocktrail-sdk-full.js"
+        ])
+            .pipe(concat('sdk.js'))
+            .pipe(gulpif(APPCONFIG.minify || options.minify, uglify({
+                mangle: {
+                    except: ['Buffer', 'BigInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']
+                }
+            })))
+            .pipe(gulp.dest('./build/js/'))
+            .on('end', done);
+    });
 });
 
-gulp.task('sass', function(done) {
+gulp.task('sass', ['appconfig'], function(done) {
+    appConfig.then(function(APPCONFIG) {
         gulp.src('./src/scss/**/*.scss')
             .pipe(sass({errLogToConsole: true}))
-            .pipe(gulpif(config.minify, minifyCss({keepSpecialComments: 0})))
+            .pipe(gulpif(APPCONFIG.minify || options.minify, minifyCss({keepSpecialComments: 0})))
             .pipe(gulp.dest('./build/css/'))
             .on('end', done);
+    });
 });
 
-gulp.task('templates:index', function(done) {
-    gulp.src("./src/index.html")
-        .pipe(template({
-            VERSION: "0.1"
-        }))
-        .pipe(gulp.dest("./build"))
-        .on('end', done);
+gulp.task('templates:index', ['appconfig'], function(done) {
+    appConfig.then(function(APPCONFIG) {
+        gulp.src("./src/index.html")
+            .pipe(template({
+                VERSION: APPCONFIG.VERSION,
+                APPCONFIG_JSON: JSON.stringify(APPCONFIG)
+            }))
+            .pipe(gulp.dest("./build"))
+            .on('end', done);
+    });
 });
 
 gulp.task('templates:rest', function(done) {
@@ -135,4 +182,5 @@ gulp.task('watch', function() {
     gulp.watch(['./src/js/**/*.js'], ['js:app']);
     gulp.watch(['./src/lib/**/*.js'], ['js:libs', 'js:sdk']);
     gulp.watch(['./src/templates/**/*', './src/index.html'], ['templates']);
+    gulp.watch(['./appconfig.json', './appconfig.default.json'], ['default']);
 });

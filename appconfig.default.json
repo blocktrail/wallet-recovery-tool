@@ -1,0 +1,4 @@
+{
+    "MINIFY": true,
+    "RECOVERY_BACKEND": "https://recovery.blocktrail.com"
+}
