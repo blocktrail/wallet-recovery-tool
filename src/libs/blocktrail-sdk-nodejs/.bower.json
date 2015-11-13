@@ -14,11 +14,11 @@
     "test",
     "tests"
   ],
-  "_release": "b83a3918bf",
+  "_release": "5b44ce4467",
   "_resolution": {
     "type": "branch",
     "branch": "wallets-v2",
-    "commit": "b83a3918bf075118cea6a12a507e960685076018"
+    "commit": "5b44ce44679273056fea1846330a3f92bb3a75a7"
   },
   "_source": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git",
   "_target": "wallets-v2",
