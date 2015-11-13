@@ -15,7 +15,8 @@ var _ = require('lodash');
 
 var isWatch = false;
 var options = {
-    minify: process.argv.indexOf('--minify') !== -1 || process.argv.indexOf('--uglify') !== -1
+    minify: process.argv.indexOf('--minify') !== -1 || process.argv.indexOf('--uglify') !== -1,
+    defaultAppConfig: process.argv.indexOf('--defaultappconfig') !== -1
 };
 
 var buildAppConfig = function() {
@@ -27,12 +28,16 @@ var buildAppConfig = function() {
                 VERSION: branch + ":" + rev
             };
 
-            ['./appconfig.json', './appconfig.default.json'].forEach(function(filename) {
-                var json = fs.readFileSync(filename);
+            var configFiles = options.defaultAppConfig ? ['./appconfig.default.json'] : ['./appconfig.json', './appconfig.default.json'];
 
-                if (json) {
-                    var data = JSON.parse(stripJsonComments(json.toString('utf8')));
-                    config = _.defaults(config, data);
+            configFiles.forEach(function(filename) {
+                if (filename && fs.existsSync(filename)) {
+                    var json = fs.readFileSync(filename);
+
+                    if (json) {
+                        var data = JSON.parse(stripJsonComments(json.toString('utf8')));
+                        config = _.defaults(config, data);
+                    }
                 }
             });
 

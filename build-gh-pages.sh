@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gulp
+gulp --defaultappconfig
 
 PROJECTDIR=$(pwd)
 TMPDIR=$(uuidgen)
