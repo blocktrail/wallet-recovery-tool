@@ -22,7 +22,7 @@ app.run(function($rootScope, $window, $log, $timeout) {
     */
 });
 
-app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http) {
+app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http, RecoveryBackend) {
     $scope.templateList = {
         "welcome": "templates/welcome.html",
         "recover": "templates/wallet.recovery.html",
@@ -179,7 +179,6 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     $scope.recoverySettings.dataService = $scope.dataServices[0];
     //*/
     /*---------------------------------------*/
-
 
     $scope.goHome = function(noPrompt) {
         if ($scope.result.working) {

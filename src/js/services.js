@@ -20,4 +20,21 @@ angular.module('wallet-recovery.services', [])
                 value.$setPristine();
             });
         };
-    });
+    })
+;
+
+angular.module('wallet-recovery.services')
+    .service('RecoveryBackend', function($http, $q) {
+        var self = this;
+
+        var BASE_URL = window.APPCONFIG.RECOVERY_BACKEND;
+
+        self.getBlocktrailPublicKey = function(email, identifier, checksum) {
+            return $http.post(BASE_URL + "/blocktrail-publickey", {email: email, identifier: identifier, checksum: checksum});
+        };
+
+        self.requestRecoverySecret = function(email, identifier) {
+            return $http.post(BASE_URL + "/recovery-secret", {email: email, identifier: identifier});
+        };
+    })
+;
