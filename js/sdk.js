@@ -9035,17 +9035,32 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         if (typeof backupData.backupMnemonic == "undefined" || !backupData.backupMnemonic) {
             throw new Error('missing backup seed for version 2 wallet');
         }
-        if (typeof backupData.passwordEncryptedSecretMnemonic == "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
-            throw new Error('missing password encrypted secret for version 2 wallet');
-        }
-        if (typeof backupData.password == "undefined") {
-            throw new Error('missing primary passphrase for version 2 wallet');
+        //can either recover with password and password encrypted secret, or with encrypted recovery secret and a decryption key
+        var usePassword = typeof backupData.password != "undefined" && backupData.password != null;
+        if (usePassword) {
+            if (typeof backupData.passwordEncryptedSecretMnemonic == "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
+                throw new Error('missing password encrypted secret for version 2 wallet');
+            }
+            if (typeof backupData.password == "undefined") {
+                throw new Error('missing primary passphrase for version 2 wallet');
+            }
+        } else {
+            if (typeof backupData.encryptedRecoverySecretMnemonic == "undefined" || !backupData.encryptedRecoverySecretMnemonic) {
+                throw new Error('missing encrypted recovery secret for version 2 wallet (recovery without password)');
+            }
+            if (!backupData.recoverySecretDecryptionKey) {
+                throw new Error('missing recovery secret decryption key for version 2 wallet (recovery without password)');
+            }
         }
 
         // cleanup copy paste errors from mnemonics
         backupData.encryptedPrimaryMnemonic = backupData.encryptedPrimaryMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
         backupData.backupMnemonic = backupData.backupMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-        backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        if (usePassword) {
+            backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        } else {
+            backupData.encryptedRecoverySecretMnemonic = backupData.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        }
     }
 
 
@@ -9064,11 +9079,24 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         // if a version 2 wallet, need to process backup data a bit more first...
 
         // convert mnemonics to hex (bip39) and then base64 for decryption
-        backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
         backupData.encryptedPrimaryMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedPrimaryMnemonic), 'hex', 'base64');
+        if (usePassword) {
+            backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
+        } else {
+            backupData.encryptedRecoverySecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedRecoverySecretMnemonic), 'hex', 'base64');
+        }
 
         // decrypt encryption secret
-        var secret = CryptoJS.AES.decrypt(backupData.passwordEncryptedSecretMnemonic, backupData.password).toString(CryptoJS.enc.Utf8);
+        var secret;
+        if (usePassword) {
+            secret = CryptoJS.AES.decrypt(backupData.passwordEncryptedSecretMnemonic, backupData.password).toString(CryptoJS.enc.Utf8);
+        } else {
+            secret = CryptoJS.AES.decrypt(backupData.encryptedRecoverySecretMnemonic, backupData.recoverySecretDecryptionKey).toString(CryptoJS.enc.Utf8);
+        }
+
+        if (!secret) {
+            throw new Error("Could not decrypt secret with " + (usePassword ? "password" : "decryption key"));
+        }
 
         // now finally decrypt the primary seed and convert to buffer (along with backup seed)
         primarySeed = new Buffer(CryptoJS.AES.decrypt(backupData.encryptedPrimaryMnemonic, secret).toString(CryptoJS.enc.Utf8), 'base64');
@@ -9080,6 +9108,7 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
     this.backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(backupSeed, this.network);
 
     if (this.settings.logging) {
+        console.log('using password method: ' + usePassword);
         console.log("Primary Prv Key: " + this.primaryPrivateKey.toBase58());
         console.log("Primary Pub Key: " + this.primaryPrivateKey.neutered().toBase58());
         console.log("Backup Prv Key: " + this.backupPrivateKey.toBase58());
@@ -9524,10 +9553,11 @@ APIClient.CryptoJS = require('crypto-js');
 APIClient.debug = require('debug');
 APIClient.bip39 = require('bip39');
 APIClient.bitcoin = require('bitcoinjs-lib');
+APIClient.superagent = require('superagent');
 
 exports = module.exports = APIClient;
 
-},{"./lib/api_client":1,"./lib/backup_generator":2,"./lib/blocktrail":3,"./lib/request":6,"./lib/services/blocktrail_bitcoin_service":8,"./lib/services/insight_bitcoin_service":9,"./lib/unspent_output_finder":10,"./lib/wallet":11,"./lib/wallet_sweeper":12,"bip39":22,"bitcoinjs-lib":36,"crypto-js":159,"debug":185,"lodash":230,"randombytes":268}],15:[function(require,module,exports){
+},{"./lib/api_client":1,"./lib/backup_generator":2,"./lib/blocktrail":3,"./lib/request":6,"./lib/services/blocktrail_bitcoin_service":8,"./lib/services/insight_bitcoin_service":9,"./lib/unspent_output_finder":10,"./lib/wallet":11,"./lib/wallet_sweeper":12,"bip39":22,"bitcoinjs-lib":36,"crypto-js":159,"debug":185,"lodash":230,"randombytes":268,"superagent":283}],15:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!

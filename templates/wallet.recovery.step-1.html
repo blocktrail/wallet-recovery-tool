@@ -49,11 +49,31 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group" ng-class="{'has-error':forms.inputFormV2.password.$invalid && !forms.inputFormV2.password.$pristine}">
-                                    <label class="col-lg-2 control-label">Wallet Password</label>
-                                    <div class="col-lg-10">
-                                        <input type="password" class="form-control" required name="password" ng-model="backupDataV2.password" placeholder="wallet password">
-                                        <span class="help-block">This is the password you used when you created the wallet.</span>
+                                <div ng-if="!backupDataV2.recoverySecretDecryptionKey">
+                                    <div class="form-group" ng-class="{'has-error':forms.inputFormV2.password.$invalid && !forms.inputFormV2.password.$pristine}">
+                                        <label class="col-lg-2 control-label">Wallet Password</label>
+                                        <div class="col-lg-10">
+                                            <input type="password" class="form-control" required name="password" ng-model="backupDataV2.password" placeholder="wallet password">
+                                            <div class="help-block">This is the password you used when you created the wallet.<a href="#" ng-click="lostPassword()" class="pull-right">forgotten password?</a></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-if="backupDataV2.encryptedRecoverySecretMnemonic && backupDataV2.recoverySecretDecryptionKey">
+                                    <hr>
+                                    <div class="form-group" ng-class="{'has-error':forms.inputFormV2.encryptedRecoverySecretMnemonic.$invalid && !forms.inputFormV2.encryptedRecoverySecretMnemonic.$pristine}">
+                                        <label class="col-lg-3 control-label">Encrypted Recovery Secret</label>
+                                        <div class="col-lg-9">
+                                            <textarea class="form-control" rows="3" required disabled name="encryptedRecoverySecretMnemonic" ng-model="backupDataV2.encryptedRecoverySecretMnemonic"></textarea>
+                                            <span class="help-block">Find this on page 1. e.g. fat arena brown skull echo quick damage ...</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" ng-class="{'has-error':forms.inputFormV2.recoverySecretDecryptionKey.$invalid && !forms.inputFormV2.recoverySecretDecryptionKey.$pristine}">
+                                        <label class="col-lg-3 control-label">Decryption Key</label>
+                                        <div class="col-lg-9">
+                                            <textarea class="form-control" rows="3" required disabled name="recoverySecretDecryptionKey" ng-model="backupDataV2.recoverySecretDecryptionKey"></textarea>
+                                            <div class="help-block">From the email you received<a href="#" ng-click="backupDataV2.recoverySecretDecryptionKey = null;" class="pull-right">switch back to password</a></div>
+                                        </div>
                                     </div>
                                 </div>
                             </fieldset>

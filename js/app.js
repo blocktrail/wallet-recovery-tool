@@ -1,4 +1,8 @@
 'use strict';
+
+var bip39 = blocktrailSDK.bip39;
+var CryptoJS = blocktrailSDK.CryptoJS;
+
 var app = angular.module('wallet-recovery', [
     'ui.bootstrap',
     'wallet-recovery.filters',
@@ -22,7 +26,7 @@ app.run(["$rootScope", "$window", "$log", "$timeout", function($rootScope, $wind
     */
 }]);
 
-app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", "$timeout", "FormHelper", "$http", function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http) {
+app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", "$timeout", "FormHelper", "$http", "RecoveryBackend", function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http, RecoveryBackend) {
     $scope.templateList = {
         "welcome": "templates/welcome.html",
         "recover": "templates/wallet.recovery.html",
@@ -98,6 +102,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
         backupMnemonic:     null,
         password:           null,
         encryptedPrimaryMnemonic:        null,
+        encryptedRecoverySecretMnemonic: null,
         passwordEncryptedSecretMnemonic: null,
         blocktrailKeys: [
             {keyIndex: 0, pubkey: null}
@@ -179,7 +184,6 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
     $scope.recoverySettings.dataService = $scope.dataServices[0];
     //*/
     /*---------------------------------------*/
-
 
     $scope.goHome = function(noPrompt) {
         if ($scope.result.working) {
@@ -320,6 +324,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
             backupMnemonic:     null,
             password:           null,
             encryptedPrimaryMnemonic:        null,
+            encryptedRecoverySecretMnemonic: null,
             passwordEncryptedSecretMnemonic: null,
             blocktrailKeys: [
                 {keyIndex: 0, pubkey: null}
@@ -359,6 +364,36 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
             },
             function(err) {
                 //import canceled
+            }
+        );
+    };
+
+    /**
+     * use password recovery feature for v2 wallets
+     */
+    $scope.lostPassword = function() {
+        $modal.open({
+            templateUrl: "templates/modal.recover-password.html",
+            controller: "recoverPasswordCtrl",
+            size: 'md',
+            resolve: {
+                walletData: function() {
+                    return {
+                        walletIdentifier: $scope.backupDataV2.walletIdentifier,
+                        encryptedRecoverySecretMnemonic: $scope.backupDataV2.encryptedRecoverySecretMnemonic
+                    };
+                }
+            }
+        }).result.then(
+            function(result) {
+                if (result) {
+                    $scope.backupDataV2.password = null;
+                    $scope.backupDataV2.encryptedRecoverySecretMnemonic = result.encryptedRecoverySecretMnemonic;
+                    $scope.backupDataV2.recoverySecretDecryptionKey = result.recoverySecretDecryptionKey;
+                }
+            },
+            function(err) {
+                //password recovery canceled
             }
         );
     };
@@ -654,6 +689,81 @@ app.controller('alertMessageCtrl', ["$scope", "$modalInstance", "messageData", f
     };
 }]);
 
+app.controller('recoverPasswordCtrl', ["$scope", "$modalInstance", "$http", "walletData", "RecoveryBackend", "FormHelper", "$timeout", function($scope, $modalInstance, $http, walletData, RecoveryBackend, FormHelper, $timeout) {
+    $scope.input = {
+        email: null,
+        walletIdentifier: walletData.walletIdentifier || "blocktrail-wallet",
+        encryptedRecoverySecretMnemonic: walletData.encryptedRecoverySecretMnemonic,
+        recoverySecretDecryptionKey: null
+    };
+    $scope.result = {working: false, message: "", emailSent: false, emailReceived: false};
+
+    $scope.requestSecret = function(inputForm) {
+        if ($scope.result.working) {
+            return false;
+        }
+
+        //validate input form
+        if (inputForm && inputForm.$invalid) {
+            FormHelper.setAllDirty(inputForm);
+            return false;
+        }
+
+        $scope.result.working = true;
+        RecoveryBackend.requestRecoverySecret($scope.input.email, $scope.input.walletIdentifier)
+            .then(function(r) {
+                console.log(/* null= */r.data);
+                $scope.result = {working: false, message: "an email has been sent to you with your decryption key", emailSent: true};
+
+            }, function(e) {
+                console.error(e.status, e.data);
+                $scope.result = {working: false, message: "Unable to retrieve your decryption key: " + e.data, emailSent: false};
+            });
+    };
+
+    $scope.useDecryptionKey = function(inputForm) {
+        if ($scope.result.working) {
+            return false;
+        }
+
+        //validate input form
+        if (inputForm && inputForm.$invalid) {
+            FormHelper.setAllDirty(inputForm);
+            return false;
+        }
+
+        //test the input by trying to decrypt the secret
+        $scope.result.working = true;
+        $scope.result.message = "Decrypting secret...";
+
+        try {
+            var encryptedRecoverySecretMnemonic = $scope.input.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+            var encrptedRecoverySecret = blocktrailSDK.convert(bip39.mnemonicToEntropy(encryptedRecoverySecretMnemonic), 'hex', 'base64');
+            var decryptionKey = $scope.input.recoverySecretDecryptionKey.trim();
+            var secret = CryptoJS.AES.decrypt(encrptedRecoverySecret, decryptionKey).toString(CryptoJS.enc.Utf8);
+
+            if (!secret) {
+                throw new Error("please check your input");
+            }
+        } catch(e) {
+            $scope.result.working = false;
+            $scope.result.message = "Unable to decrypt the recovery secret: " + e;
+            return false;
+        }
+
+        //all good, return the input
+        $scope.result.message = "Secret decrypted successfully";
+        $timeout(function() {
+            $scope.result.working = false;
+            $modalInstance.close($scope.input);
+        }, 500);
+    };
+
+    $scope.cancel = function() {
+        $modalInstance.dismiss();
+    };
+}]);
+
 app.controller('scanQRCtrl', ["$scope", "$modalInstance", "$timeout", "$log", function($scope, $modalInstance, $timeout, $log) {
     $timeout(function() {
         angular.element('#QRScanner').html5_qrcode(function(data, stream) {
@@ -707,6 +817,7 @@ app.controller('importBackupCtrl', ["$scope", "$modalInstance", "$timeout", "$lo
                 backupMnemonic:     "",
                 //password:           null,
                 encryptedPrimaryMnemonic:        "",
+                encryptedRecoverySecretMnemonic: "",
                 passwordEncryptedSecretMnemonic: "",
                 blocktrailKeys: []
             };
@@ -882,6 +993,9 @@ app.controller('importBackupCtrl', ["$scope", "$modalInstance", "$timeout", "$lo
                             $scope.dataV2.encryptedPrimaryMnemonic += item.str + " ";
                             console.log('**storing first value: encryptedPrimaryMnemonic: ' + item.str);
                             break;
+                        case "encryptedRecoverySecretMnemonic":
+                            $scope.dataV2.encryptedRecoverySecretMnemonic += item.str + " ";
+                            break;
                         case "passwordEncryptedSecretMnemonic":
                             $scope.dataV2.passwordEncryptedSecretMnemonic += item.str + " ";
                             break;
@@ -903,7 +1017,7 @@ app.controller('importBackupCtrl', ["$scope", "$modalInstance", "$timeout", "$lo
                         dataKey = "backupMnemonic";
                     } else if (item.str.search(/Encrypted Recovery Secret/i) !== -1) {
                         //wallet v2 data - not used
-                        //dataKey = "encryptedRecoverySecretMnemonic";
+                        dataKey = "encryptedRecoverySecretMnemonic";
                     } else if (item.str.search(/Password Encrypted Secret/i) !== -1) {
                         //wallet v2 data
                         dataKey = "passwordEncryptedSecretMnemonic";
@@ -1059,4 +1173,21 @@ angular.module('wallet-recovery.services', [])
                 value.$setPristine();
             });
         };
-    });
+    })
+;
+
+angular.module('wallet-recovery.services')
+    .service('RecoveryBackend', ["$http", "$q", function($http, $q) {
+        var self = this;
+
+        var BASE_URL = window.APPCONFIG.RECOVERY_BACKEND;
+
+        self.getBlocktrailPublicKey = function(email, identifier, checksum) {
+            return $http.post(BASE_URL + "/blocktrail-publickey", {email: email, identifier: identifier, checksum: checksum});
+        };
+
+        self.requestRecoverySecret = function(email, identifier) {
+            return $http.post(BASE_URL + "/recovery-secret", {email: email, identifier: identifier});
+        };
+    }])
+;

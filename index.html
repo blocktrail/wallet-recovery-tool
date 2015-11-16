@@ -8,6 +8,9 @@
     <script src="js/sdk.js"></script>
     <script src="js/libs.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        window.APPCONFIG = {"VERSION":"master:9ed9a1a","MINIFY":true,"RECOVERY_BACKEND":"https://recovery-backend.blocktrail.com"};
+    </script>
 </head>
 <body ng-controller="walletRecoveryCtrl" ng-class="{working: result.working}">
     <div class="container mainview" ng-include="mainTemplate"></div>
