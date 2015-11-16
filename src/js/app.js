@@ -1,4 +1,8 @@
 'use strict';
+
+var bip39 = blocktrailSDK.bip39;
+var CryptoJS = blocktrailSDK.CryptoJS;
+
 var app = angular.module('wallet-recovery', [
     'ui.bootstrap',
     'wallet-recovery.filters',
@@ -382,8 +386,10 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             }
         }).result.then(
             function(result) {
-                if (result.password) {
-                    $scope.backupDataV2.password = result.password;
+                if (result) {
+                    $scope.backupDataV2.password = null;
+                    $scope.backupDataV2.encryptedRecoverySecretMnemonic = result.encryptedRecoverySecretMnemonic;
+                    $scope.backupDataV2.recoverySecretDecryptionKey = result.recoverySecretDecryptionKey;
                 }
             },
             function(err) {
@@ -683,11 +689,12 @@ app.controller('alertMessageCtrl', function($scope, $modalInstance, messageData)
     };
 });
 
-app.controller('recoverPasswordCtrl', function($scope, $modalInstance, $http, walletData, RecoveryBackend, FormHelper) {
+app.controller('recoverPasswordCtrl', function($scope, $modalInstance, $http, walletData, RecoveryBackend, FormHelper, $timeout) {
     $scope.input = {
         email: null,
         walletIdentifier: walletData.walletIdentifier || "blocktrail-wallet",
-        encryptedRecoverySecretMnemonic: walletData.encryptedRecoverySecretMnemonic
+        encryptedRecoverySecretMnemonic: walletData.encryptedRecoverySecretMnemonic,
+        recoverySecretDecryptionKey: null
     };
     $scope.result = {working: false, message: "", emailSent: false, emailReceived: false};
 
@@ -714,16 +721,47 @@ app.controller('recoverPasswordCtrl', function($scope, $modalInstance, $http, wa
             });
     };
 
+    $scope.useDecryptionKey = function(inputForm) {
+        if ($scope.result.working) {
+            return false;
+        }
+
+        //validate input form
+        if (inputForm && inputForm.$invalid) {
+            FormHelper.setAllDirty(inputForm);
+            return false;
+        }
+
+        //test the input by trying to decrypt the secret
+        $scope.result.working = true;
+        $scope.result.message = "Decrypting secret...";
+
+        try {
+            var encryptedRecoverySecretMnemonic = $scope.input.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+            var encrptedRecoverySecret = blocktrailSDK.convert(bip39.mnemonicToEntropy(encryptedRecoverySecretMnemonic), 'hex', 'base64');
+            var decryptionKey = $scope.input.recoverySecretDecryptionKey.trim();
+            var secret = CryptoJS.AES.decrypt(encrptedRecoverySecret, decryptionKey).toString(CryptoJS.enc.Utf8);
+
+            if (!secret) {
+                throw new Error("please check your input");
+            }
+        } catch(e) {
+            $scope.result.working = false;
+            $scope.result.message = "Unable to decrypt the recovery secret: " + e;
+            return false;
+        }
+
+        //all good, return the input
+        $scope.result.message = "Secret decrypted successfully";
+        $timeout(function() {
+            $scope.result.working = false;
+            $modalInstance.close($scope.input);
+        }, 500);
+    };
+
     $scope.cancel = function() {
         $modalInstance.dismiss();
     };
-    $scope.ok = function() {
-        $modalInstance.close(null);
-    };
-
-    $scope.$on("$destroy", function() {
-        angular.element('#QRScanner').html5_qrcode_stop();
-    });
 });
 
 app.controller('scanQRCtrl', function($scope, $modalInstance, $timeout, $log) {
