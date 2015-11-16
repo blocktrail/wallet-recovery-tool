@@ -29,8 +29,11 @@ angular.module('wallet-recovery.services')
 
         var BASE_URL = window.APPCONFIG.RECOVERY_BACKEND;
 
-        self.getBlocktrailPublicKey = function(email, identifier, checksum) {
-            return $http.post(BASE_URL + "/blocktrail-publickey", {email: email, identifier: identifier, checksum: checksum});
+        self.requestBlocktrailPublicKey = function(passwordEncryptedSecretMnemonic, keyIndex) {
+            if (isNaN(keyIndex)) {
+                keyIndex = 0;
+            }
+            return $http.post(BASE_URL + "/blocktrail-publickey", {encrypted_secret: passwordEncryptedSecretMnemonic, keyIndex: keyIndex});
         };
 
         self.requestRecoverySecret = function(email, identifier) {

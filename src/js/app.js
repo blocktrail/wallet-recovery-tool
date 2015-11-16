@@ -792,7 +792,7 @@ app.controller('scanQRCtrl', function($scope, $modalInstance, $timeout, $log) {
     });
 });
 
-app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $log, $q) {
+app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $log, $q, RecoveryBackend) {
     $scope.fileSelected = false;
     $scope.backupFile = null;
     $scope.result = {working: false, message: ""};
@@ -887,18 +887,32 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                     .then(function(allPageImages) {
                         //set the pubkey data decoded from the images
                         var pubKeyIndex = 0;
+                        var promises = [];
                         allPageImages.forEach(function(pageImages, index) {
                             //first image of each page is always the blocktrail logo, other indexes correspond to qrcode decode attempts
                             pageImages.forEach(function(decodedData, index) {
                                 if (index > 0) {
                                     if ($scope.walletVersion == 2) {
                                         $scope.dataV2.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
+                                        if (decodedData === null) {
+                                            //the qrcode couldn't be decoded...try and request it from the server
+                                            console.log('requesting blocktrail pubkey for ' + $scope.dataV2.blocktrailKeys[pubKeyIndex].keyIndex);
+                                            promises.push($scope.requestWalletPubKey($scope.dataV2.blocktrailKeys[pubKeyIndex]));
+                                        }
                                     } else {
                                         $scope.dataV1.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
                                     }
                                     pubKeyIndex++;
                                 }
                             });
+                        });
+
+                        return $q.all(promises).then(function(){
+                            return true;
+                        }, function(err){
+                            //there was an error requesting one of the blocktrail pubkeys....continue anyway, the user will need to scan manually
+                            console.error("ERROR requesting bt pubkey: ", err);
+                            return false;
                         });
                     })
                     .then(function() {
@@ -1110,6 +1124,21 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         // guess the original format, but be aware the using "image/jpg"
         // will re-encode the image.
         return canvas.toDataURL("image/jpg");
+    };
+
+    /**
+     * request a blocktrail pubkey for this wallet (called if the qr code can't be decoded)
+     * @param {obj} pubkey      ref to the pubkey obj to update
+     */
+    $scope.requestWalletPubKey = function(pubkey) {
+        //convert mnemonic to hex and then base64
+        var passwordEncryptedSecretMnemonic = $scope.dataV2.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        var encryptedSecret = blocktrailSDK.convert(bip39.mnemonicToEntropy(passwordEncryptedSecretMnemonic), 'hex', 'base64');
+
+        return RecoveryBackend.requestBlocktrailPublicKey(encryptedSecret)
+            .then(function(result) {
+                pubkey.pubkey = result.data;
+            });
     };
 
     $scope.cancel = function() {
