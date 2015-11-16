@@ -8,7 +8,8 @@ This tool can be used to recover funds from a Blocktrail wallet using your backu
 Both the developer API wallets and the consumer wallets (iOS, Android and web app) are supported by this tool.
 
 #####Required Data
-You need your backup pdf along with the password you used when you created the wallet. For the developer wallets, this is the password you give when you create each wallet. For the consumer wallets this is the password you used when signing up for an account.
+You need your backup pdf along with the password you used when you created the wallet. For the developer wallets, this is the password you give when you create each wallet. For the consumer wallets this is the password you used when signing up for an account.  
+For users with a version 2 wallet (consumer wallet) you can recover you wallet even if you forget your password. This feature is only available if you signed up with your email address however. If you signed up with a username and have forgotten you password, please contact us directly at [support@blocktrail.com](mailto:support@blocktrail.com)
 
 #####External Services Used
 You can use the Blocktrail service to discover funds and send the transaction, or alternatively Bitpay Insight is also supported.
@@ -35,4 +36,3 @@ Then you can use node and [serve](https://www.npmjs.com/package/serve) to create
   
 ## Coming Soon...
 - set the transaction fee manually
-- recover your wallet if you've forgotten your password
