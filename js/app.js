@@ -126,7 +126,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
         network: "btc",
         testnet: false,
 
-        sweepBatchSize: 50,
+        sweepBatchSize: 150,
         dataService: $scope.dataServices[0],
         apiKey: null,
         apiSecret: null,
