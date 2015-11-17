@@ -3,7 +3,7 @@
 
 This tool can be used to recover funds from a Blocktrail wallet using your backup file. It allows you to sweep all the funds from the wallet into any bitcoin address you provide.  
 
-See the <a target="_blank" href="https://github.com/blocktrail/wallet-recovery-tool">live version of tool.</a>
+See the <a target="_blank" href="http://blocktrail.github.io/wallet-recovery-tool">live version of tool.</a>
 
 ## Things to Know...
 #####Supported Wallets
@@ -26,15 +26,32 @@ The tool can import and detect backup data directly from a backup pdf, however s
 --------------------------------  
   
 ## Running This Tool Locally
-The tool runs completely in your browser so your keys never leave your computer. It is possible to download this tool and run directly from your computer if you wish. 
-You can either: 
-1. Clone the repository, run `npm install` and then `gulp` to create you own build
-2. Download the latest release which contains already built files 
+The tool runs completely in your browser so your keys never leave your computer.  
+It is possible to download this tool and run directly from your computer if you wish. 
 
-Then you can use node and [serve](https://www.npmjs.com/package/serve) to create a local web server from the build folder. The tool will now be accessible locally through your browser.  
 ***NB:*** *the only steps that require an internet connection are the funds discovery (step 3) and relaying the signed transaction (final step)*
-  
---------------------------------  
+
+You can either;
+
+##### Clone the repository
+ - run `npm install` 
+ - and then `gulp` to create you own build 
+ - `npm install -g serve`
+ - `cd build` 
+ - run `serve` 
+ - and visit `http://localhost:3000`
+
+Or;
+
+##### Download the latest release which contains already built files 
+We've attached a ZIP with the `build` already done to every release and you can find the latest here: https://github.com/blocktrail/wallet-recovery-tool/releases
+ 
+ - unzip the release and enter the directory
+ - `npm install -g serve`
+ - `cd build` 
+ - run `serve` 
+ - and visit `http://localhost:3000`
+
   
 ## Coming Soon...
 - set the transaction fee manually
