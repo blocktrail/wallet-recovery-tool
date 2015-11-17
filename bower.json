@@ -17,7 +17,7 @@
   "dependencies": {
     "angular": "1.4.7",
     "angular-ui": "angular-ui-bootstrap-bower#0.14.3",
-    "blocktrail-sdk-nodejs": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git#wallet-sweeper-gap-check",
+    "blocktrail-sdk-nodejs": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git#wallets-v2",
     "bootstrap": "bootstrap-sass#3.3.5",
     "html5-qrcode": "git://github.com/dwa012/html5-qrcode",
     "pdfjs-dist": "~1.2.89",
