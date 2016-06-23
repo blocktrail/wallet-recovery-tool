@@ -693,6 +693,7 @@ app.controller('recoverPasswordCtrl', function($scope, $modalInstance, $http, wa
     $scope.input = {
         email: null,
         walletIdentifier: walletData.walletIdentifier || "blocktrail-wallet",
+        manually: false,
         encryptedRecoverySecretMnemonic: walletData.encryptedRecoverySecretMnemonic,
         recoverySecretDecryptionKey: null
     };
