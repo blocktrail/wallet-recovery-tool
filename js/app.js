@@ -440,10 +440,11 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
                 }
             });
 
+            var bitcoinDataClient;
             //create an instance of the chosen bitcoin data service
             switch ($scope.recoverySettings.dataService.value) {
                 case "blocktrail_bitcoin_service":
-                    var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
+                    bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
                         apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
                         apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
                         network: $scope.recoverySettings.network,
@@ -451,7 +452,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
                     });
                     break;
                 case "insight_bitcoin_service":
-                    var bitcoinDataClient = new blocktrailSDK.InsightBitcoinService({
+                    bitcoinDataClient = new blocktrailSDK.InsightBitcoinService({
                         testnet: $scope.recoverySettings.testnet
                     });
                     break;
