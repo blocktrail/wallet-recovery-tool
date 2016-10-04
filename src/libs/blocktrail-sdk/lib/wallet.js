@@ -43,6 +43,7 @@ var Wallet = function(
     upgradeToKeyIndex,
     bypassNewAddressCheck
 ) {
+    /* jshint -W071 */
     var self = this;
 
     self.sdk = sdk;
@@ -88,6 +89,9 @@ Wallet.WALLET_VERSION_V2 = 'v2';
 
 Wallet.WALLET_ENTROPY_BITS = 256;
 
+Wallet.OP_RETURN = 'opreturn';
+Wallet.DATA = Wallet.OP_RETURN; // alias
+
 Wallet.PAY_PROGRESS_START = 0;
 Wallet.PAY_PROGRESS_COIN_SELECTION = 10;
 Wallet.PAY_PROGRESS_CHANGE_ADDRESS = 20;
@@ -97,6 +101,7 @@ Wallet.PAY_PROGRESS_DONE = 100;
 
 Wallet.FEE_STRATEGY_BASE_FEE = blocktrail.FEE_STRATEGY_BASE_FEE;
 Wallet.FEE_STRATEGY_OPTIMAL = blocktrail.FEE_STRATEGY_OPTIMAL;
+Wallet.FEE_STRATEGY_LOW_PRIORITY = blocktrail.FEE_STRATEGY_LOW_PRIORITY;
 
 Wallet.prototype.unlock = function(options, cb) {
     var self = this;
@@ -665,12 +670,19 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
     deferred.promise.spreadNodeify(cb);
 
     q.nextTick(function() {
-        var send = {};
+        var send = [];
 
+        // normalize / validate sends
         Object.keys(pay).forEach(function(address) {
             address = address.trim();
             var value = pay[address];
             var err = null;
+
+            if (address === Wallet.OP_RETURN) {
+                var datachunk = Buffer.isBuffer(value) ? value : new Buffer(value, 'utf-8');
+                send.push({scriptPubKey: bitcoin.scripts.nullDataOutput(datachunk).toBuffer().toString('hex'), value: 0});
+                return;
+            }
 
             var addr;
             try {
@@ -694,10 +706,10 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                 return deferred.promise;
             }
 
-            send[address] = value;
+            send.push({address: address, value: parseInt(value, 10)});
         });
 
-        if (!Object.keys(send).length) {
+        if (!send.length) {
             deferred.reject(new blocktrail.WalletSendError("Need at least one recipient"));
             return deferred.promise;
         }
@@ -705,7 +717,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
         deferred.notify(Wallet.PAY_PROGRESS_COIN_SELECTION);
 
         deferred.resolve(
-            self.coinSelection(pay, true, allowZeroConf, feeStrategy, options)
+            self.coinSelection(send, true, allowZeroConf, feeStrategy, options)
             /**
              *
              * @param {Object[]} utxos
@@ -738,7 +750,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                             });
                             var estimatedChange = inputsTotal - outputsTotal - fee;
 
-                            if (estimatedChange > blocktrail.DUST && inputsTotal - outputsTotal - fee !== change) {
+                            if (estimatedChange > blocktrail.DUST * 2 && estimatedChange !== change) {
                                 return cb(new blocktrail.WalletFeeError("the amount of change (" + change + ") " +
                                     "suggested by the coin selection seems incorrect (" + estimatedChange + ")"));
                             }
@@ -775,8 +787,14 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          * @param cb
                          */
                         function(cb) {
-                            Object.keys(send).forEach(function(address) {
-                                outputs.push({address: address, value: parseInt(send[address], 10)});
+                            send.forEach(function(_send) {
+                                if (_send.address) {
+                                    outputs.push({address: _send.address, value: _send.value});
+                                } else if (_send.scriptPubKey) {
+                                    outputs.push({scriptPubKey: bitcoin.Script.fromBuffer(new Buffer(_send.scriptPubKey, 'hex')), value: _send.value});
+                                } else {
+                                    throw new Error("Invalid send");
+                                }
                             });
 
                             cb();
@@ -835,7 +853,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          */
                         function(cb) {
                             outputs.forEach(function(outputInfo) {
-                                txb.addOutput(outputInfo.address, outputInfo.value);
+                                txb.addOutput(outputInfo.scriptPubKey || outputInfo.address, outputInfo.value);
                             });
 
                             cb();

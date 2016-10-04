@@ -14,13 +14,14 @@
     "test",
     "tests"
   ],
-  "_release": "34d2e9da79",
+  "version": "2.1.2",
+  "_release": "2.1.2",
   "_resolution": {
-    "type": "branch",
-    "branch": "wallet-sweeper-gap-check",
-    "commit": "34d2e9da79e394e00ab96572b8c0256e5fdb53f1"
+    "type": "version",
+    "tag": "v2.1.2",
+    "commit": "8e724f52a919c636a517309abbbb48d80ad8cb7c"
   },
   "_source": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git",
-  "_target": "wallet-sweeper-gap-check",
-  "_originalSource": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git"
+  "_target": "v2.1.2",
+  "_originalSource": "blocktrail-sdk"
 }
