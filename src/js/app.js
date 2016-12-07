@@ -348,7 +348,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             size: 'md'
         }).result.then(
             function(importedData) {
-                if (importedData.walletVersion == 2) {
+                if (importedData.walletVersion == 2 || importedData.walletVersion == 3) {
                     $scope.backupDataV2 = angular.extend({}, importedData);
                     $scope.activeWalletVersion = {
                         v1: false,
@@ -1017,6 +1017,12 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                             break;
                         default:
                             break;
+                    }
+
+                    // get wallet version from title
+                    var m = item.str.match(/Wallet Identifier \(v(\d+)\)/i);
+                    if (m) {
+                        $scope.dataV2.walletVersion = parseInt(m[1], 10);
                     }
 
                     //according to the current line, determine what should happen with the next line of text
