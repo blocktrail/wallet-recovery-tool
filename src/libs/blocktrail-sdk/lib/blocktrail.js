@@ -62,6 +62,12 @@ blocktrail.aesEncryptSeedToMnemonic = aesEncryptSeedToMnemonic;
 blocktrail.aesEncryptSeedHexToMnemonic = aesEncryptSeedHexToMnemonic;
 blocktrail.aesEncryptSeedBufferToMnemonic = aesEncryptSeedBufferToMnemonic;
 
+blocktrail.V3Crypt = {
+    KeyDerivation: require('./keyderivation'),
+    Encryption: require('./encryption'),
+    EncryptionMnemonic: require('./encryption_mnemonic')
+};
+
 /**
  * convert a BTC value to Satoshi
  *
