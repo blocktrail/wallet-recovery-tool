@@ -2,7 +2,10 @@
     <h4 class="modal-title text-center">Import from Backup PDF</h4>
 </div>
 <div class="modal-body text-center">
-    <p class="margin-b">Select backup pdf of the wallet you wish to recover</p>
+    <p class="margin-b">
+        Select backup pdf of the wallet you wish to recover. <br />
+        The PDF is not uploaded to any servers, it's loaded into the memory of the browser to extract the relevant data.
+    </p>
 
     <label class="file-upload">
         <input class="hidden" type="file" ng-model="backupPdf" onchange="angular.element(this).scope().uploadFile(this)"/>
