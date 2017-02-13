@@ -4,6 +4,11 @@
             <h1>Discover Wallet Funds</h1>
             <p>Scan for funds to recover from addresses in the wallet.</p>
 
+            <p ng-if="firstAddress">
+                The first address of your wallet is: {{ firstAddress }}, <br />
+                please provide this if you ever need to contact support about help using this tool.
+            </p>
+
             <button class="btn btn-lg btn-success margin-t" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="foundFunds" ng-click="discoverFunds()">Begin Discovery</button>
         </div>
     </div>

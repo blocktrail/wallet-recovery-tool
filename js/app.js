@@ -310,6 +310,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
         $scope.walletSweeper = null;
         $scope.foundFunds = null;
         $scope.signedTransaction = null;
+        $scope.firstAddress = null;
         $scope.backupDataV1 = {
             walletVersion:      1,
             primaryMnemonic:    null,
@@ -426,6 +427,8 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
      * @returns {boolean}
      */
     $scope.initWalletSweeper = function() {
+        $scope.firstAddress = null;
+
         $scope.result = {working: true};
         try {
             //cleanup input
@@ -515,6 +518,15 @@ app.controller('walletRecoveryCtrl', ["$scope", "$modal", "$rootScope", "$log", 
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
         //delay to allow UI to update
         $timeout(function() {
+            // generate /0 address for reference
+            var keyIndex = Object.keys($scope.walletSweeper.blocktrailPublicKeys)[0];
+            var blocktrailPubKey = $scope.walletSweeper.blocktrailPublicKeys[keyIndex];
+            var path =  "M/" + keyIndex + "'/0/0";
+            var firstAddr = $scope.walletSweeper.createAddress(path);
+
+            $scope.firstAddress = firstAddr.address;
+
+            // start discovery
             $scope.walletSweeper.discoverWalletFunds()
                 .progress(function(progress) {
                     $scope.$apply(function() {
