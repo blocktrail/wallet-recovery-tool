@@ -380,6 +380,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             resolve: {
                 walletData: function() {
                     return {
+                        walletVersion: $scope.backupDataV2.walletVersion,
                         walletIdentifier: $scope.backupDataV2.walletIdentifier,
                         encryptedRecoverySecretMnemonic: $scope.backupDataV2.encryptedRecoverySecretMnemonic
                     };
@@ -752,9 +753,16 @@ app.controller('recoverPasswordCtrl', function($scope, $modalInstance, $http, wa
 
         try {
             var encryptedRecoverySecretMnemonic = $scope.input.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-            var encrptedRecoverySecret = blocktrailSDK.convert(bip39.mnemonicToEntropy(encryptedRecoverySecretMnemonic), 'hex', 'base64');
             var decryptionKey = $scope.input.recoverySecretDecryptionKey.trim();
-            var secret = CryptoJS.AES.decrypt(encrptedRecoverySecret, decryptionKey).toString(CryptoJS.enc.Utf8);
+
+            var secret, encryptedRecoverySecret;
+            if (walletData.walletVersion === 3) {
+                encryptedRecoverySecret = blocktrailSDK.EncryptionMnemonic.decode(encryptedRecoverySecretMnemonic);
+                secret = blocktrailSDK.Encryption.decrypt(encryptedRecoverySecret, new blocktrailSDK.Buffer(decryptionKey, 'hex'));
+            } else {
+                encryptedRecoverySecret = blocktrailSDK.convert(bip39.mnemonicToEntropy(encryptedRecoverySecretMnemonic), 'hex', 'base64');
+                secret = CryptoJS.AES.decrypt(encryptedRecoverySecret, decryptionKey).toString(CryptoJS.enc.Utf8);
+            }
 
             if (!secret) {
                 throw new Error("please check your input");
