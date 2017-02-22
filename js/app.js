@@ -753,7 +753,7 @@ app.controller('recoverPasswordCtrl', ["$scope", "$modalInstance", "$http", "wal
 
         try {
             var encryptedRecoverySecretMnemonic = $scope.input.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-            var decryptionKey = $scope.input.recoverySecretDecryptionKey.trim();
+            var decryptionKey = $scope.input.recoverySecretDecryptionKey = $scope.input.recoverySecretDecryptionKey.trim();
 
             var secret, encryptedRecoverySecret;
             if (walletData.walletVersion === 3) {
