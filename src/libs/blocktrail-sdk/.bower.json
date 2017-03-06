@@ -14,14 +14,14 @@
     "test",
     "tests"
   ],
-  "version": "3.0.6",
-  "_release": "3.0.6",
+  "version": "3.0.8",
+  "_release": "3.0.8",
   "_resolution": {
     "type": "version",
-    "tag": "v3.0.6",
-    "commit": "90688008f3d47e1e05c3d9c0af6bc02f3e25c8d9"
+    "tag": "v3.0.8",
+    "commit": "7b74615dd3d16bd4bd28d9a2590c5f9e5463ec93"
   },
   "_source": "https://github.com/blocktrail/blocktrail-sdk-nodejs.git",
-  "_target": "3.0.6",
+  "_target": "3.0.8",
   "_originalSource": "blocktrail-sdk"
 }
