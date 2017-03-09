@@ -981,8 +981,6 @@ app.controller('importBackupCtrl', ["$scope", "$modalInstance", "$timeout", "$lo
                 //loop over text content and act according to key phrases
                 console.log("---------------------------------------------------");
                 textContent.items.forEach(function(item, index) {
-                    console.log(item.str);
-
                     //current line handlers: determin what to do with current line if anything special
                     if (item.str.search(/Backup Seed/i) !== -1) {
                         //end of "Encrypted Primary Seed" (v2)
@@ -1040,9 +1038,14 @@ app.controller('importBackupCtrl', ["$scope", "$modalInstance", "$timeout", "$lo
                     }
 
                     // get wallet version from title
-                    var m = item.str.match(/Wallet Identifier \(v(\d+)\)/i);
+                    var m = item.str.match(/Wallet Identifier \((v(\d+)|undefined)\)/i);
+
                     if (m) {
-                        $scope.dataV2.walletVersion = parseInt(m[1], 10);
+                        if (m[1] === "undefined") {
+                            $scope.dataV2.walletVersion = 3;
+                        } else {
+                            $scope.dataV2.walletVersion = parseInt(m[2], 10);
+                        }
                     }
 
                     //according to the current line, determine what should happen with the next line of text
