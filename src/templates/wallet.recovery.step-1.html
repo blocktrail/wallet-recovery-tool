@@ -25,6 +25,18 @@
                                     <button class="btn btn-sm btn-primary pull-right" ng-click="importBackup()">Import from Backup</button>
                                 </legend>
 
+                                <div class="form-group">
+                                    <label class="col-lg-2 control-label">Wallet Version</label>
+                                    <div class="col-lg-10">
+                                        <select class="form-control" required name="walletVersion"
+                                                ng-model="backupDataV2.walletVersionSelect"
+                                                ng-change="walletVersionSelected()">
+                                            <option value="2">v2</option>
+                                            <option value="3">v3</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="form-group" ng-class="{'has-error':forms.inputFormV2.encryptedPrimaryMnemonic.$invalid && !forms.inputFormV2.encryptedPrimaryMnemonic.$pristine}">
                                     <label class="col-lg-2 control-label">Encrypted Primary Seed</label>
                                     <div class="col-lg-10">

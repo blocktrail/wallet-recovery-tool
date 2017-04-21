@@ -98,15 +98,20 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
      *                                  pubkey:     the contents of the QR code (page 1)
      */
     $scope.backupDataV2 = {
-        walletVersion:      2,
-        backupMnemonic:     null,
-        password:           null,
+        walletVersion:       2,
+        walletVersionSelect: "2", // ng-model can only do strings
+        backupMnemonic:      null,
+        password:            null,
         encryptedPrimaryMnemonic:        null,
         encryptedRecoverySecretMnemonic: null,
         passwordEncryptedSecretMnemonic: null,
         blocktrailKeys: [
             {keyIndex: 0, pubkey: null}
         ]
+    };
+
+    $scope.walletVersionSelected = function() {
+        $scope.backupDataV2.walletVersion = parseInt($scope.backupDataV2.walletVersionSelect, 10);
     };
 
     /*
@@ -321,9 +326,10 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             ]
         };
         $scope.backupDataV2 = {
-            walletVersion:      2,
-            backupMnemonic:     null,
-            password:           null,
+            walletVersion:       2,
+            walletVersionSelect: "2",
+            backupMnemonic:      null,
+            password:            null,
             encryptedPrimaryMnemonic:        null,
             encryptedRecoverySecretMnemonic: null,
             passwordEncryptedSecretMnemonic: null,
@@ -1075,6 +1081,9 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         dataKey = "backupMnemonic";
                     }
                 });
+
+                $scope.dataV2.walletVersionSelect = "" + $scope.dataV2.walletVersion + "";
+
                 console.log("---------------------------------------------------");
                 deferred.resolve();
             })
