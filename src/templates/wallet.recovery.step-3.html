@@ -41,7 +41,7 @@
                 <div class="results text-center" ng-show="foundFunds">
                     <h3 ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ !foundFunds.balance && "No " || ""}}Funds Found</h3>
                     <p>
-                        A balance of <b ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ foundFunds.balance | toBtc }} BTC</b> was found after searching <b>{{ foundFunds.addressesSearched }}</b> addresses.
+                        A balance of <b ng-class="{'text-success': foundFunds.balance, 'text-danger': !foundFunds.balance}">{{ foundFunds.balance | toBtc }} {{ displayNetwork.value.toUpperCase() }}</b> was found after searching <b>{{ foundFunds.addressesSearched }}</b> addresses.
                     </p>
 
                     <div class="subdued" ng-repeat="(address, value) in foundFunds.utxos">

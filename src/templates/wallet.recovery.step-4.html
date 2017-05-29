@@ -1,7 +1,7 @@
 <section class="step-4">
     <div class="text-center">
         <h1>Recover Wallet Funds</h1>
-        <p>Recover the <b>{{ foundFunds.balance | toBtc }} BTC</b> from this wallet to your address.</p>
+        <p>Recover the <b>{{ foundFunds.balance | toBtc }} {{ displayNetwork.value.toUpperCase() }}</b> from this wallet to your address.</p>
     </div>
 
     <form name="inputForm" class="text-left margin-t" novalidate>
