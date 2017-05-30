@@ -46,32 +46,17 @@
             <div class="col-lg-8 col-lg-offset-2">
                 <div class="well bs-component">
                     <fieldset>
-                        <legend>Recovery Settings</legend>
+                        <legend>Recovery Settings <small ng-if="recoveryNetwork != null">Network: {{ recoveryNetwork.value.toUpperCase() }}</small></legend>
 
                         <div class="col-lg-6" ng-class="{'has-error':inputForm.network.$invalid && !inputForm.network.$pristine}">
                             <label class="control-label">Network</label>
                             <select class="form-control" name="network"
                                     required
-                                    ng-options="network as network.name for network in recoverySheetNetworks"
+                                    ng-options="network as network.name for network in networks"
                                     ng-model="recoverySettings.selectedNetwork"
                                     ng-change="recoverySettings.network = recoverySettings.selectedNetwork.value; recoverySettings.testnet = recoverySettings.selectedNetwork.testnet;">
                             </select>
                             <span class="help-block">Select the coin network of your wallet</span>
-                        </div>
-
-                        <div class="col-lg-6" ng-class="{'has-error':inputForm.recoveryNetwork.$invalid && !inputForm.recoveryNetwork.$pristine}">
-                            <label class="control-label">Recovery Network</label>
-                            <select class="form-control" name="recoveryNetwork"
-                                    required
-                                    ng-options="network as network.name for network in networks"
-                                    ng-model="recoverySettings.recoveryNetwork"
-                                    ng-disabled="!recoverySettings.useRecoveryNetwork"
-                                    >
-                            </select>
-                            <input type="checkbox"
-                                   ng-model="recoverySettings.useRecoveryNetwork"
-                                   value="0" > Enable
-                            <span class="help-block">If you accidentally sent coins to your blocktrail wallet on another network, select one.</span>
                         </div>
 
                         <div class="col-lg-6" ng-class="{'has-error':inputForm.sweepBatchSize.$invalid && !inputForm.sweepBatchSize.$pristine}">
