@@ -147,7 +147,6 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     */
     $scope.recoverySettings = {
         selectedNetwork: $scope.networks[0],
-        useRecoveryNetwork: false,
         recoveryNetwork: null,
 
         // these 2 are set from selectedNetwork
