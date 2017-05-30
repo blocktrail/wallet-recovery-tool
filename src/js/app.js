@@ -53,14 +53,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
     $scope.networks = [
         {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://insight.bitpay.com/api", recoverySheet: true},
         {name: "Bitcoin Testnet", value: "tbtc", testnet: true, insightHost: "https://test-insight.bitpay.com/api", recoverySheet: true},
-        {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://insight.litecore.io/api", recoverySheet: false}
     ];
-    $scope.recoverySheetNetworks = $scope.networks.filter(function (val) {
-        return val.recoverySheet == true;
-    });
-    $scope.recoveryNetworks = $scope.networks.filter(function (val) {
-        return val.recoverySheet == false;
-    });
 
     $scope.dataServices = [
         {
@@ -78,6 +71,15 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             apiSecretRequired: false
         }
     ];
+
+    if (window.APPCONFIG.RECOVER_LITECOIN) {
+        $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://insight.litecore.io/api", recoverySheet: false};
+
+        // remove blocktrail
+        $scope.dataServices.shift()
+    } else {
+        $scope.recoveryNetwork = null
+    }
 
     /**
      * backup data from a Wallet V1 Backup PDF (Developer wallets)
@@ -472,8 +474,8 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if ($scope.recoverySettings.useRecoveryNetwork) {
-                recoveryNetwork = $scope.recoverySettings.recoveryNetwork;
+            if (window.APPCONFIG.RECOVER_LITECOIN) {
+                recoveryNetwork = $scope.recoveryNetwork;
             }
 
             var bitcoinDataClient;
@@ -555,8 +557,8 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
-        if ($scope.recoverySettings.useRecoveryNetwork) {
-            displayNetwork = $scope.recoverySettings.recoveryNetwork;
+        if (window.APPCONFIG.RECOVER_LITECOIN) {
+            displayNetwork = $scope.recoveryNetwork;
         }
 
         $scope.displayNetwork = displayNetwork
@@ -676,8 +678,8 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if ($scope.recoverySettings.useRecoveryNetwork) {
-            recoveryNetwork = $scope.recoverySettings.recoveryNetwork;
+        if (window.APPCONFIG.RECOVER_LITECOIN) {
+            recoveryNetwork = $scope.recoveryNetwork;
         }
 
         switch (service) {

@@ -1,4 +1,5 @@
 {
     "MINIFY": true,
+    "RECOVER_LITECOIN": false,
     "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com"
 }

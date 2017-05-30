@@ -28,7 +28,7 @@
                         </li>
                         <li class="subdued">
                             <label>Total Balance:</label>
-                            <span class="value">{{ result.progress.totalBalance | toBtc }} BTC</span>
+                            <span class="value">{{ result.progress.totalBalance | toBtc }} {{ displayNetwork.value.toUpperCase() }}</span>
                         </li>
                     </ul>
                     <h4 class="text-center"><small>{{ result.progress.message }}...</small></h4>
