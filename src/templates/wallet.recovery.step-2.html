@@ -12,7 +12,7 @@
 
                 <div class="well bs-component">
                     <fieldset>
-                        <legend>Bitcoin Data Service</legend>
+                        <legend>{{ recoveryNetwork.name }} Data Service</legend>
 
                         <div class="form-group" ng-class="{'has-error':inputForm.dataService.$invalid && !inputForm.dataService.$pristine}">
                             <div class="col-lg-12">
@@ -46,7 +46,7 @@
             <div class="col-lg-8 col-lg-offset-2">
                 <div class="well bs-component">
                     <fieldset>
-                        <legend>Recovery Settings <small ng-if="recoveryNetwork != null">Network: {{ recoveryNetwork.value.toUpperCase() }}</small></legend>
+                        <legend>Recovery Settings </small></legend>
 
                         <div class="col-lg-6" ng-class="{'has-error':inputForm.network.$invalid && !inputForm.network.$pristine}">
                             <label class="control-label">Network</label>
