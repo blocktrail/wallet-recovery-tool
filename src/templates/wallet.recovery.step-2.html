@@ -48,7 +48,7 @@
                     <fieldset>
                         <legend>Recovery Settings</legend>
 
-                        <div class="col-lg-6" ng-class="{'has-error':inputForm.network.$invalid && !inputForm.network.$pristine}">
+                        <div ng-if="!recoveryNetwork" class="col-lg-6" ng-class="{'has-error':inputForm.network.$invalid && !inputForm.network.$pristine}">
                             <label class="control-label">Network</label>
                             <select class="form-control" name="network"
                                     required
