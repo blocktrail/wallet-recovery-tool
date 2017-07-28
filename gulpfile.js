@@ -173,11 +173,17 @@ gulp.task('copyfonts', function(done) {
         .on('end', done);
 });
 
+gulp.task('copyimages', function(done) {
+    gulp.src('./src/logo.png')
+        .pipe(gulp.dest('./build'))
+        .on('end', done);
+});
+
 
 /*---Main tasks---*/
 gulp.task('js', ['js:libs', 'js:app', 'js:sdk']);
 gulp.task('templates', ['templates:index', 'templates:rest']);
-gulp.task('default', ['sass', 'templates', 'js', 'copyfonts']);
+gulp.task('default', ['sass', 'templates', 'js', 'copyfonts', 'copyimages']);
 
 /*---Watch tasks---*/
 gulp.task('watch', function() {

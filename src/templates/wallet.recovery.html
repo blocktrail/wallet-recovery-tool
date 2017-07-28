@@ -1,6 +1,9 @@
 <section class="wallet-recovery">
     <header>
-        <ol class="breadcrumb">
+        <div style="margin-top: 10px; margin-bottom: 20px; text-align: center;">
+            <img src="logo.png" style="width: 200px; height: auto;" />
+        </div>
+        <ol ng-if="breadcrumbs" class="breadcrumb">
             <li><a href="" ng-click="goHome()">Start</a></li>
             <li class="active">
                 <a ng-if="currentStep >= 1" href="" ng-click="prevStep('step_1', 1)">Step 1</a>

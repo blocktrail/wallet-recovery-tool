@@ -37,10 +37,14 @@ app.run(function($rootScope, $window, $log, $timeout) {
     */
 });
 
-app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, $timeout, FormHelper, $http, RecoveryBackend) {
+app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $log, $timeout, FormHelper, $http, RecoveryBackend) {
+    var CONFIG = window.APPCONFIG;
+    var Buffer = blocktrailSDK.Buffer;
+
     $scope.templateList = {
         "welcome": "templates/welcome.html",
         "recover": "templates/wallet.recovery.html",
+        "login": "templates/wallet.recovery.step-login.html",
         "step_1": "templates/wallet.recovery.step-1.html",
         "step_2": "templates/wallet.recovery.step-2.html",
         "step_3": "templates/wallet.recovery.step-3.html",
@@ -77,8 +81,13 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
 
         // remove blocktrail
         $scope.dataServices.shift()
+    } else if (window.APPCONFIG.RECOVER_BCC) {
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bcc-insight.btc.com/insight-api", recoverySheet: false};
+
+        // remove blocktrail
+        $scope.dataServices.shift()
     } else {
-        $scope.recoveryNetwork = null
+        $scope.recoveryNetwork = null;
     }
 
     /**
@@ -119,6 +128,9 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
      *                                  pubkey:     the contents of the QR code (page 1)
      */
     $scope.backupDataV2 = {
+        cosign: false,
+        sdk: false,
+
         walletVersion:       2,
         walletVersionSelect: "2", // ng-model can only do strings
         backupMnemonic:      null,
@@ -161,12 +173,21 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         destinationAddress: null
     };
 
+    $scope.loginData = {
+        login: "",
+        password: "",
+        twoFactorToken: "",
+        twoFactorRequired: false
+    }
+
     $scope.activeWalletVersion = {
         v1: false,
         v2: true
     };
     $scope.currentStep = 0;
     $scope.result = {};
+    $scope.breadcrumbs = false;
+    $scope.recoveryComplete = false;
 
 
     /*--------------------debugging---------*/
@@ -239,6 +260,16 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             function() {}
         );
     };
+    $scope.goStep1 = function() {
+        if ($scope.result.working) {
+            return false;
+        }
+        $scope.resetAll();
+        $scope.currentStep = 1;
+        $scope.mainTemplate = $scope.templateList['recover'];
+        $scope.subTemplate = $scope.templateList['step_1'];
+        return;
+    };
     $scope.prevStep = function(step, setStep) {
         if ($scope.result.working) {
             return false;
@@ -251,12 +282,15 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             $scope.currentStep--;
         }
     };
-    $scope.nextStep = function(step, inputForm) {
+    $scope.nextStep = function(step, inputForm, currentStep) {
+        currentStep = currentStep || $scope.currentStep;
+        console.log('nextStep');
         if ($scope.result.working) {
             return false;
         }
 
         //validate input form
+        console.log('nextStep');
         if (inputForm && inputForm.$invalid) {
             FormHelper.setAllDirty(inputForm);
             //invalidate inner forms
@@ -265,7 +299,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         }
 
         //complete any secondary actions related to the current step
-        switch ($scope.currentStep) {
+        switch (currentStep) {
             case 1:
                 if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
                     $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
@@ -275,16 +309,26 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     return false;
                 }
 
-                try {
-                    var btPubKey = blocktrailSDK.bitcoin.HDNode.fromBase58($scope.backupDataV2.blocktrailKeys[0].pubkey);
-                    if (btPubKey.network === blocktrailSDK.bitcoin.networks.testnet) {
-                        $scope.recoverySettings.selectedNetwork = $scope.networks[1];
-                        $scope.recoverySettings.network = 'btc';
-                        $scope.recoverySettings.testnet = true;
+                // try both mainnet and testnet since we don't know which one yet
+                var btPubKey;
+                [blocktrailSDK.bitcoin.networks.mainnet, blocktrailSDK.bitcoin.networks.testnet].forEach(function(network) {
+                    if (btPubKey) return;
+
+                    try {
+                        btPubKey = blocktrailSDK.bitcoin.HDNode.fromBase58($scope.backupDataV2.blocktrailKeys[0].pubkey, network);
+                        if (btPubKey.network === blocktrailSDK.bitcoin.networks.testnet) {
+                            $scope.recoverySettings.selectedNetwork = $scope.networks[1];
+                            $scope.recoverySettings.network = 'btc';
+                            $scope.recoverySettings.testnet = true;
+                        }
+                    } catch (e) {
+                        console.log(e);
                     }
-                } catch (e) {
-                    console.log(e);
+                });
+
+                if (!btPubKey) {
                     $scope.alert({subtitle: "Invalid Blocktrail Public Key", message: "The provided Blocktrail pub key is invalid"});
+                    return false;
                 }
 
                 break;
@@ -308,7 +352,95 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         //navigate to next step
         $scope.mainTemplate = $scope.templateList['recover'];
         $scope.subTemplate = $scope.templateList[step];
-        $scope.currentStep++;
+        $scope.currentStep = currentStep += 1;
+
+        console.log('$scope.currentStep', $scope.currentStep);
+    };
+
+
+    $scope.doLogin = function() {
+        $scope.loginData.error = null;
+        var twoFactorToken = $scope.loginData.twoFactorToken;
+        $scope.loginData.twoFactorToken = null; // consumed
+
+        $http.post(CONFIG.API_URL + "/v1/" + ($scope.recoveryNetwork.testnet ? "t" : "") + "BTC/mywallet/enable", {
+            login: $scope.loginData.login,
+            password: blocktrailSDK.CryptoJS.SHA512($scope.loginData.password).toString(),
+            platform: "Recovery",
+            two_factor_token: twoFactorToken,
+            device_name: navigator.userAgent || "Unknown Browser"
+        }).then(
+            function(result) {
+                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet});
+
+                // for cosigning
+                $scope.backupDataV2.sdk = sdk;
+                $scope.backupDataV2.cosignTwoFactorRequired = $scope.loginData.twoFactorRequired;
+                $scope.backupDataV2.cosign = true;
+
+                var walletIdentifier = result.data.existing_wallet;
+                var walletPassword = $scope.loginData.password;
+
+                // walletIdentifier = "bitcoin-abc-recovery";
+                // walletPassword = "bitcoin-abc-recovery";
+
+                return sdk.client.get("/wallet/" + walletIdentifier).then(function(wallet) {
+                    var encryptedPrimaryMnemonic;
+                    var passwordEncryptedSecretMnemonic;
+
+                    if (wallet.wallet_version === "v2") {
+                        encryptedPrimaryMnemonic = blocktrailSDK.bip39.entropyToMnemonic(blocktrailSDK.convert(wallet.encrypted_primary_seed, 'base64', 'hex'));
+                        passwordEncryptedSecretMnemonic = blocktrailSDK.bip39.entropyToMnemonic(blocktrailSDK.convert(wallet.encrypted_secret, 'base64', 'hex'));
+                    } else if (wallet.wallet_version === "v3") {
+                        encryptedPrimaryMnemonic = blocktrailSDK.EncryptionMnemonic.encode(new Buffer(wallet.encrypted_primary_seed, 'base64'));
+                        passwordEncryptedSecretMnemonic = blocktrailSDK.EncryptionMnemonic.encode(new Buffer(wallet.encrypted_secret, 'base64'));
+                    } else {
+                        alert("wallet version not supported");
+                    }
+
+                    $scope.backupDataV2.walletIdentifier = walletIdentifier;
+                    $scope.backupDataV2.walletVersion = parseInt(wallet.wallet_version.replace("v", ""), 10);
+                    $scope.backupDataV2.walletVersionSelect = wallet.wallet_version.replace("v", ""); // ng-model can only do strings
+                    $scope.backupDataV2.backupMnemonic = false;
+                    $scope.backupDataV2.backupPublicKey = wallet.backup_public_key[0];
+                    $scope.backupDataV2.password = walletPassword;
+                    $scope.backupDataV2.encryptedPrimaryMnemonic = encryptedPrimaryMnemonic;
+                    $scope.backupDataV2.passwordEncryptedSecretMnemonic = passwordEncryptedSecretMnemonic;
+                    $scope.backupDataV2.blocktrailKeys = [
+                        {keyIndex: 0, pubkey: wallet.blocktrail_public_keys[0][0]}
+                    ];
+
+                    $timeout(function() {
+                        $scope.nextStep('step_3', false, 2);
+                    });
+                })
+                    .catch(function(e) {
+                        console.log(e);
+                    });
+            },
+            function(error) {
+                $scope.working = false;
+
+                if (error.data) {
+                    error = blocktrailSDK.Request.handleFailure(error.data);
+
+                    if (error.is_banned) {
+                        return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btc.com");
+                    } else if (error.requires_sha512) {
+                        return alert("Please login on www.blocktrail.com/dev/login first to upgrade your account");
+                    } else if (error instanceof blocktrailSDK.WalletMissing2FAError) {
+                        $scope.loginData.twoFactorRequired = true;
+                        $scope.loginData.error = "Two-factor Authentication required";
+                    } else if (error instanceof blocktrailSDK.WalletInvalid2FAError) {
+                        $scope.loginData.error = "Two-factor Authentication incorrect";
+                    } else {
+                        $scope.loginData.error = "Failed Login";
+                    }
+                } else {
+                    $scope.loginData.error = "Failed Login";
+                }
+            }
+        );
     };
 
     /**
@@ -466,14 +598,9 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     $scope.backupDataV1.blocktrailKeys.splice(index, 1);
                 }
             });
-            angular.forEach($scope.backupDataV2.blocktrailKeys, function(btPubkey, index) {
-                if (!btPubkey.pubkey) {
-                    $scope.backupDataV2.blocktrailKeys.splice(index, 1);
-                }
-            });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if (window.APPCONFIG.RECOVER_LITECOIN) {
+            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
                 recoveryNetwork = $scope.recoveryNetwork;
             }
 
@@ -484,7 +611,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
                         apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
                         apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
-                        network: recoveryNetwork.network,
+                        network: recoveryNetwork.value,
                         testnet: recoveryNetwork.testnet
                     });
                     break;
@@ -502,14 +629,16 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
 
             //create an instance of the wallet sweeper
             var sweeperOptions = {
-                network: recoveryNetwork.network,
+                network: recoveryNetwork.value,
                 testnet: recoveryNetwork.testnet,
                 sweepBatchSize: $scope.recoverySettings.sweepBatchSize,
                 logging: true
             };
 
             if (recoveryNetwork.value === "ltc") {
-                sweeperOptions.recoveryNetwork = litecoinLatest
+                sweeperOptions.network = litecoinLatest;
+            } else if (recoveryNetwork.value === "bcc") {
+                sweeperOptions.network = "btc";
             }
 
             if ($scope.activeWalletVersion.v2) {
@@ -541,6 +670,16 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         }
     };
 
+    $scope.discoverFundsAgain = function() {
+        $timeout(function() {
+            $scope.foundFunds = false;
+            $scope.walletSweeper.settings.sweepBatchSize = $scope.recoverySettings.sweepBatchSize = $scope.recoverySettings.sweepBatchSize * 2;
+            $timeout(function() {
+                $scope.discoverFunds();
+            });
+        });
+    }
+
     /**
      * begin fund discovering
      * @returns {boolean}
@@ -556,7 +695,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
             displayNetwork = $scope.recoveryNetwork;
         }
 
@@ -616,15 +755,12 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
             return false;
         }
 
-        var network = $scope.walletSweeper.network
-        if (typeof $scope.walletSweeper.recoveryNetwork === "object") {
-            network = $scope.walletSweeper.recoveryNetwork
-        }
+        var network = $scope.walletSweeper.network;
 
         //validate destination address
         var addr, err;
         try {
-            addr = blocktrailSDK.bitcoin.Address.fromBase58Check(destinationAddress);
+            addr = blocktrailSDK.bitcoin.address.fromBase58Check(destinationAddress, network);
             if (addr.version !== network.pubKeyHash && addr.version !== network.scriptHash) {
                 err = new blocktrailSDK.InvalidAddressError("Invalid network");
             }
@@ -649,16 +785,70 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                     console.log(progress);
                 })
                 .then(function(transaction) {
-                    $scope.$apply(function() {
-                        $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
-                        $scope.signedTransaction = transaction;
-                        $log.debug(transaction);
+                    $log.debug(transaction);
 
-                        $scope.nextStep('finish');
-                    });
+                    if ($scope.backupDataV2.cosign) {
+                        var sdk = $scope.backupDataV2.sdk;
+
+                        var paths = [];
+                        var values = [];
+                        Object.keys($scope.walletSweeper.sweepData.utxos).forEach(function(address) {
+                            var addrData = $scope.walletSweeper.sweepData.utxos[address];
+
+                            addrData.utxos.forEach(function(utxo) {
+                                paths.push(addrData.path);
+                                values.push(utxo.value);
+                            });
+                        });
+
+                        var twoFactorToken = null;
+                        if ($scope.backupDataV2.cosignTwoFactorRequired) {
+                            twoFactorToken = prompt("Please provide a two-factor authentication token for sign the transaction");
+                        }
+
+                        return sdk.client.post(
+                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/signbcc",
+                            {
+                                check_fee: 0,
+                                check_utxos_spent: 0,
+                                bitcoincash: 1
+                            },
+                            {
+                                raw_transaction: transaction,
+                                paths: paths,
+                                values: values,
+                                two_factor_token: twoFactorToken
+                            }).then(function(result) {
+                                console.log(result);
+                                $timeout(function() {
+                                    $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
+                                    $scope.signedTransaction = result.hex;
+
+                                    $scope.nextStep('finish');
+                                });
+                            }, function(err) {
+                                if (err instanceof blocktrailSDK.WalletInvalid2FAError) {
+                                    $scope.alert({subtitle: "Failed", message: "Invalid two-factor authentication token"}, 'md');
+                                    $scope.result = {
+                                        working: false,
+                                        complete: false,
+                                        message: "Invalid two-factor authentication token"
+                                    };
+                                } else {
+                                    throw err;
+                                }
+                            });
+                    } else {
+                        $timeout(function() {
+                            $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
+                            $scope.signedTransaction = transaction;
+
+                            $scope.nextStep('finish');
+                        });
+                    }
                 })
                 .catch(function(err) {
-                    $scope.$apply(function() {
+                    $timeout(function() {
                         $scope.result = {working: false, complete: true, message: "Failed creating transaction", errors: [err.message]};
                         $log.error(err);
                     });
@@ -677,7 +867,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
@@ -686,7 +876,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                 var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
                     apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
                     apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
-                    network: recoveryNetwork.network,
+                    network: recoveryNetwork.value,
                     testnet: recoveryNetwork.testnet
                 });
                 bitcoinDataClient.client.sendRawTransaction(txData.hex)
@@ -695,6 +885,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                         //$scope.alert({subtitle: "Success", message: "Transaction successfully relayed via Blocktrail: " + result.hash}, 'md');
                         $scope.alert({subtitle: "Success - Transaction relayed by Blocktrail", message: "Your transaction hash is " + result.hash}, 'md');
                         $scope.result.working = false;
+                        $scope.recoveryComplete = true;
                     })
                     .catch(function(err) {
                         $scope.alert({subtitle: "Failed to send Transaction", message: "An error was returned: " + err});
@@ -712,6 +903,7 @@ app.controller('walletRecoveryCtrl', function($scope, $modal, $rootScope, $log, 
                         console.log(result);
                         $scope.alert({subtitle: "Success - Transaction relayed by Insight", message: "Your transaction hash is " + result.txid}, 'md');
                         $scope.result.working = false;
+                        $scope.recoveryComplete = true;
                     })
                     .catch(function(result) {
                         console.error(result);

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html ng-app="wallet-recovery">
 <head>
-    <title>Blocktrail - Wallet Recovery Tool</title>
+    <title>BTC.com - Bitcoin Cash Wallet Recovery Tool</title>
 
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main.css?v=<%= VERSION %>">
 
-    <script src="js/sdk.js"></script>
-    <script src="js/libs.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/sdk.js?v=<%= VERSION %>"></script>
+    <script src="js/libs.js?v=<%= VERSION %>"></script>
+    <script src="js/app.js?v=<%= VERSION %>"></script>
     <script>
         window.APPCONFIG = <%= APPCONFIG_JSON %>;
     </script>

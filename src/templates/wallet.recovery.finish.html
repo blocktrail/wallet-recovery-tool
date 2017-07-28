@@ -1,24 +1,35 @@
 <section class="finish">
-    <div class="text-center">
-        <h1>Recovery Complete</h1>
-        <p>Below is a Raw Transaction that will send the found funds to your recovery address.</p>
-    </div>
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3">
 
-    <div class="info margin-t padding-t">
-        <div class="results text-center">
+            <div class="text-center" style="margin-top: 40px;">
+                <h1 ng-if="!recoveryComplete">Almost there...</h1>
+                <h1 ng-if="recoveryComplete">Recovery Complete</h1>
+                <p>Below is a Raw Transaction that will send the found funds to your recovery address.</p>
+                <p>You can manually broadcast the transaction somewhere or use one of the buttons below.</p>
+            </div>
+
+            <div class="info margin-t padding-t">
+                <div class="results text-center">
             <pre class="text-left">
 {{ signedTransaction }}
             </pre>
-            <p class="text-center" ng-hide="false">
-                <!--<button class="btn btn-md btn-default" ng-click="copyToClipboard(signedTransaction)">Copy Transaction</button>-->
-                <button class="btn btn-md btn-success" ng-click="sendTx('blocktrail', {hex: signedTransaction})">Send via Blocktrail</button>
-                <button class="btn btn-md btn-success" ng-click="sendTx('insight', {hex: signedTransaction})">Send via Insight</button>
-            </p>
+                    <p class="text-center" ng-hide="false" style="margin-top:20px;">
+                        <!--<button class="btn btn-md btn-default" ng-click="copyToClipboard(signedTransaction)">Copy Transaction</button>-->
+                        <button ng-if="recoverySettings.dataService.value == 'blocktrail_bitcoin_service'" class="btn btn-lg btn-success"
+                                ng-click="sendTx('blocktrail', {hex: signedTransaction})">
+                            Broadcast Transaction via Blocktrail
+                        </button>
+                        <button ng-if="recoverySettings.dataService.value == 'insight_bitcoin_service'" class="btn btn-lg btn-success"
+                                ng-click="sendTx('insight', {hex: signedTransaction})">
+                            Broadcast Transaction via Insight
+                        </button>
+                    </p>
+                </div>
+            </div>
+
         </div>
     </div>
-</section>
 
-<footer>
-    <button class="btn btn-sm btn-success pull-right" ng-click="goHome(true)">done</button>
-    <button class="btn btn-sm btn-default pull-right" ng-click="prevStep('step_4')">back</button>
-</footer>
+
+</section>

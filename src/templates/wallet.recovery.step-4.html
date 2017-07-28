@@ -1,5 +1,5 @@
 <section class="step-4">
-    <div class="text-center">
+    <div class="text-center" style="margin-top:40px;">
         <h1>Recover Wallet Funds</h1>
         <p>Recover the <b>{{ foundFunds.balance | toBtc }} {{ displayNetwork.value.toUpperCase() }}</b> from this wallet to your address.</p>
     </div>
@@ -8,7 +8,7 @@
         <div class="row">
             <div class="col-xs-8 col-sm-6 col-lg-4 col-xs-offset-2 col-sm-offset-3 col-lg-offset-4">
                 <div class="form-group" ng-class="{'has-error':inputForm.address.$invalid && !inputForm.address.$pristine}">
-                    <label class="control-label">Your {{ network }} Address</label>
+                    <label class="control-label">Your {{ recoveryNetwork.name }} Address</label>
                     <input type="text" class="form-control" required name="address" ng-model="recoverySettings.destinationAddress" placeholder="recovery address">
                 </div>
             </div>
@@ -16,7 +16,8 @@
 
         <div class="row">
             <div class="col-sm-12 margin-t text-center">
-                <button class="btn btn-lg btn-success" ng-class="{working: result.working}" ng-disabled="result.working" ng-click="recoverFunds(recoverySettings.destinationAddress, inputForm)">Begin Recovery</button>
+                <button class="btn btn-lg btn-success" ng-class="{working: result.working}" ng-disabled="result.working"
+                        ng-click="recoverFunds(recoverySettings.destinationAddress, inputForm)">Continue Recovery</button>
             </div>
         </div>
     </form>
@@ -36,8 +37,3 @@
         </div>
     </div>
 </section>
-
-<footer>
-    <button class="btn btn-sm btn-success pull-right" ng-disabled="!signedTransaction"  ng-click="nextStep('finish')">next</button>
-    <button class="btn btn-sm btn-default pull-right" ng-disabled="result.working"  ng-click="prevStep('step_3')">back</button>
-</footer>

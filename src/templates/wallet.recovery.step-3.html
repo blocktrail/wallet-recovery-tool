@@ -1,20 +1,19 @@
 <section class="step-3">
-    <div class="row text-center">
-        <div class="col-lg-8 col-lg-offset-2">
-            <h1>Discover Wallet Funds</h1>
-            <p>Scan for funds to recover from addresses in the wallet.</p>
+    <div class="row text-center"  ng-if="!foundFunds" style="margin-top:60px;">
+        <div class="col-xs-6 col-xs-offset-3">
+            <h1 ng-if="!result.working">Discover Wallet Funds</h1>
+            <h1 ng-if="result.working">Discovering ...</h1>
+            <p>Lets scan for Bitcoin Cash funds to recover from addresses in the wallet. Please note <b>this will take some time!</b></p>
 
-            <p ng-if="firstAddress">
-                The first address of your wallet is: {{ firstAddress }}, <br />
-                please provide this if you ever need to contact support about help using this tool.
-            </p>
-
-            <button class="btn btn-lg btn-success margin-t" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="foundFunds" ng-click="discoverFunds()">Begin Discovery</button>
+            <button ng-if="!result.working" class="btn btn-lg btn-success margin-t" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="foundFunds" ng-click="discoverFunds()">Begin Discovery</button>
+            <div class="alert alert-warning" ng-if="result.working">
+                Discovering... <b>please wait...</b>
+            </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-6 col-lg-offset-3 text-center">
+        <div class="col-xs-6 col-xs-offset-3 text-center">
             <div class="info">
                 <div class="logs" ng-show="result.working">
                     <ul class="list-unstyled list-inline">
@@ -27,7 +26,7 @@
                             <span class="value">{{ result.progress.totalUTXOs && result.progress.totalUTXOs || 0 }}</span>
                         </li>
                         <li class="subdued">
-                            <label>Total Balance:</label>
+                            <label>Discovered Balance:</label>
                             <span class="value">{{ result.progress.totalBalance | toBtc }} {{ displayNetwork.value.toUpperCase() }}</span>
                         </li>
                     </ul>
@@ -47,13 +46,36 @@
                     <div class="subdued" ng-repeat="(address, value) in foundFunds.utxos">
                         <small><b>{{ value.utxos.length }}</b> output(s) found in <b>{{ address }}</b></small>
                     </div>
+
+                    <div ng-if="!foundFunds.balance">
+                        <p>
+                            <b>If you are certain you should have some Bitcoin Cash in your wallet</b>,
+                            you can retry with a bigger discovery window: <br />
+                            <button class="btc btn-sm btn-primary" ng-click="discoverFundsAgain()">retry</button><br />
+                        </p>
+                        <p ng-if="firstAddress">
+                            Or contact suppor@btc.com, the first address of your wallet is: {{ firstAddress }}, <br />
+                            please provide this if you ever need to contact support about help using this tool.
+                        </p>
+                    </div>
+
+                    <div ng-if="foundFunds.balance">
+                        <p>
+                            <b>If you are certain you should have more Bitcoin Cash in your wallet</b>,
+                            you can retry with a bigger discovery window: <br />
+                            <button class="btc btn-sm btn-primary" ng-click="discoverFundsAgain()">retry</button><br />
+                        </p>
+                        <p ng-if="firstAddress">
+                            Or contact suppor@btc.com, the first address of your wallet is: {{ firstAddress }}, <br />
+                            please provide this if you ever need to contact support about help using this tool.
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-lg btn-success" ng-disabled="!foundFunds.balance" ng-click="nextStep('step_4')">Continue Recovery</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-<footer>
-    <button class="btn btn-sm btn-success pull-right" ng-disabled="!foundFunds.balance" ng-click="nextStep('step_4')">next</button>
-    <button class="btn btn-sm btn-default pull-right" ng-disabled="result.working" ng-click="prevStep('step_2')">back</button>
-</footer>
