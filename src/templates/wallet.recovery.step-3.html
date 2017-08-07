@@ -3,7 +3,7 @@
         <div class="col-xs-6 col-xs-offset-3">
             <h1 ng-if="!result.working">Discover Wallet Funds</h1>
             <h1 ng-if="result.working">Discovering ...</h1>
-            <p>Lets scan for Bitcoin Cash funds to recover from addresses in the wallet. Please note <b>this will take some time!</b></p>
+            <p>Lets scan for {{ CONFIG.NETWORK_LONG }} funds to recover from addresses in the wallet. Please note <b>this will take some time!</b></p>
 
             <button ng-if="!result.working" class="btn btn-lg btn-success margin-t" ng-class="{working: result.working}" ng-disabled="result.working" ng-hide="foundFunds" ng-click="discoverFunds()">Begin Discovery</button>
             <div class="alert alert-warning" ng-if="result.working">
@@ -49,7 +49,7 @@
 
                     <div ng-if="!foundFunds.balance">
                         <p>
-                            <b>If you are certain you should have some Bitcoin Cash in your wallet</b>,
+                            <b>If you are certain you should have some {{ APPCONFIG.NETWORK_LONG }} in your wallet</b>,
                             you can retry with a bigger discovery window: <br />
                             <button class="btc btn-sm btn-primary" ng-click="discoverFundsAgain()">retry</button><br />
                         </p>
@@ -61,7 +61,7 @@
 
                     <div ng-if="foundFunds.balance">
                         <p>
-                            <b>If you are certain you should have more Bitcoin Cash in your wallet</b>,
+                            <b>If you are certain you should have more {{ APPCONFIG.NETWORK_LONG }}in your wallet</b>,
                             you can retry with a bigger discovery window: <br />
                             <button class="btc btn-sm btn-primary" ng-click="discoverFundsAgain()">retry</button><br />
                         </p>

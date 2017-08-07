@@ -1,6 +1,10 @@
 {
     "MINIFY": true,
+    "NETWORK": "BTC",
+    "NETWORK_LONG": "Bitcoin",
     "RECOVER_LITECOIN": false,
+    "RECOVER_BCC": false,
+    "LOGIN_BASED_RECOVERY": false,
     "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
     "API_URL": "https://api.blocktrail.com"
 }

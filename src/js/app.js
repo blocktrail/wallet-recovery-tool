@@ -40,6 +40,7 @@ app.run(function($rootScope, $window, $log, $timeout) {
 app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $log, $timeout, FormHelper, $http, RecoveryBackend) {
     var CONFIG = window.APPCONFIG;
     var Buffer = blocktrailSDK.Buffer;
+    $scope.CONFIG = CONFIG;
 
     $scope.templateList = {
         "welcome": "templates/welcome.html",
