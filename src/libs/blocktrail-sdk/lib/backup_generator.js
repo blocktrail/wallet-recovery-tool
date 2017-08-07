@@ -15,7 +15,7 @@ var qrCode = function(text, size, typeNumber, errorCorrectLevel) {
 
 /**
  * @param identifier            string          identifier
- * @param backupInfo            array
+ * @param backupInfo            object
  * @param extraInfo             array
  * @param options
  * @constructor
@@ -62,7 +62,8 @@ BackupGenerator.prototype.generateHTML = function(cb) {
             } else {
                 return {
                     title: key,
-                    value: value
+                    value: value,
+                    subtitle: null
                 };
             }
         }),
