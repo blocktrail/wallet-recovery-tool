@@ -6224,6 +6224,7 @@ a.list-group-item-danger.active:hover, a.list-group-item-danger.active:focus {
   opacity: 1; }
 
 html, body {
+  background-color: #E6E9EE;
   min-height: 100%; }
 
 /*

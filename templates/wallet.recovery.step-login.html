@@ -1,0 +1,47 @@
+<section class="step-1">
+
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2">
+
+            <form class="form-horizontal" name="forms.loginForm" novalidate>
+                <div class="well tabbed-well" style="background-color:#fff;padding:20px;border:1px solid #333;">
+                    <h4 style="margin:0px;padding:0px;">Please login to your wallet</h4>
+                    <hr style="margin-bottom:40px;"/>
+                    <div ng-if="loginData.error">
+                        <div class="alert alert-danger">{{ loginData.error }}</div>
+                    </div>
+
+                    <fieldset>
+                        <div class="form-group">
+                            <label class="col-lg-4 control-label">Email-address / Username</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" required name="login"
+                                       ng-model="loginData.login" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-4 control-label">Password</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" required name="password"
+                                       ng-model="loginData.password" />
+                            </div>
+                        </div>
+                        <div class="form-group" ng-if="loginData.twoFactorRequired">
+                            <label class="col-lg-4 control-label">Two Factor Authentication</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" required name="twoFactorToken"
+                                       ng-model="loginData.twoFactorToken" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div style="height: 40px;">
+                        <a href ng-click="goStep1()">Forgot Password</a>
+                        <button class="btn btn-success pull-right" ng-click="doLogin()">Login</button>
+                        <!-- <button class="btn btn-default pull-right" ng-click="goHome(true)">Cancel</button> //-->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
