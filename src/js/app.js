@@ -639,6 +639,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             if (recoveryNetwork.value === "ltc") {
                 sweeperOptions.network = litecoinLatest;
             } else if (recoveryNetwork.value === "bcc") {
+                sweeperOptions.bitcoinCash = true;
                 sweeperOptions.network = "btc";
             }
 
