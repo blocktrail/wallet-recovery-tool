@@ -302,21 +302,31 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         //complete any secondary actions related to the current step
         switch (currentStep) {
             case 1:
-                if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
-                    $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
-                    return false;
-                } else if ($scope.activeWalletVersion.v2 && $scope.backupDataV2.blocktrailKeys.length == 0) {
-                    $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
-                    return false;
+                var blocktrailKeys;
+
+                if ($scope.activeWalletVersion.v1) {
+                    if ($scope.backupDataV1.blocktrailKeys.length === 0) {
+                        $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
+                        return false;
+                    }
+
+                    blocktrailKeys = $scope.backupDataV1.blocktrailKeys;
+                } else {
+                    if ($scope.backupDataV2.blocktrailKeys.length === 0) {
+                        $scope.alert({subtitle: "Missing Blocktrail Public Key", message: "At least one Blocktrail pub key is required"});
+                        return false;
+                    }
+
+                    blocktrailKeys = $scope.backupDataV2.blocktrailKeys;
                 }
 
                 // try both mainnet and testnet since we don't know which one yet
                 var btPubKey;
-                [blocktrailSDK.bitcoin.networks.mainnet, blocktrailSDK.bitcoin.networks.testnet].forEach(function(network) {
+                [blocktrailSDK.bitcoin.networks.bitcoin, blocktrailSDK.bitcoin.networks.testnet].forEach(function(network) {
                     if (btPubKey) return;
 
                     try {
-                        btPubKey = blocktrailSDK.bitcoin.HDNode.fromBase58($scope.backupDataV2.blocktrailKeys[0].pubkey, network);
+                        btPubKey = blocktrailSDK.bitcoin.HDNode.fromBase58(blocktrailKeys[0].pubkey, network);
                         if (btPubKey.network === blocktrailSDK.bitcoin.networks.testnet) {
                             $scope.recoverySettings.selectedNetwork = $scope.networks[1];
                             $scope.recoverySettings.network = 'btc';
@@ -1075,7 +1085,6 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
         $scope.$evalAsync(function() {
             $scope.result = {working: false, message: ""};
             $scope.walletVersion = null;
-            $scope.blocktrailKeys = [];
             $scope.dataV1 = {
                 walletVersion:      1,
                 walletIdentifier:   "",
