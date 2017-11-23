@@ -8,6 +8,7 @@
   "main": "index.html",
   "devDependencies": {
     "git-rev": "^0.2.1",
+    "gulp": "^3.9.1",
     "gulp-concat": "^2.5.2",
     "gulp-if": "^1.2.5",
     "gulp-minify-css": "^0.3.0",
