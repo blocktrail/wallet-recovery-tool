@@ -2,6 +2,7 @@
 
 var bip39 = blocktrailSDK.bip39;
 var CryptoJS = blocktrailSDK.CryptoJS;
+var bitcoin = blocktrailSDK.bitcoin;
 
 var litecoinLatest = {
     messagePrefix: '\x19Litecoin Signed Message:\n',
@@ -86,7 +87,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bcc-insight.btc.com/insight-api", recoverySheet: false};
+      $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bcc-insight.btc.com/insight-api", recoverySheet: false};
+    } else if (window.APPCONFIG.RECOVER_BTG) {
+      $scope.recoveryNetwork = {name: "Bitcoin Gold", value: "btg", testnet: false, insightHost: "https://btg-bitcore2.trezor.io/api", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -626,7 +629,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BTG) {
                 recoveryNetwork = $scope.recoveryNetwork;
             }
 
@@ -666,6 +669,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             } else if (recoveryNetwork.value === "bcc") {
                 sweeperOptions.bitcoinCash = true;
                 sweeperOptions.network = "btc";
+            } else if (recoveryNetwork.value === "btg") {
+                sweeperOptions.network = bitcoin.networks.bitcoingold;
+                sweeperOptions.bitcoinGold = true;
             }
 
             if ($scope.activeWalletVersion.v2) {
@@ -730,7 +736,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BTG) {
             displayNetwork = $scope.recoveryNetwork;
         }
 
@@ -849,7 +855,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                             "/wallet/" + $scope.backupDataV2.walletIdentifier + "/" + window.APPCONFIG.COSIGN_ENDPOINT,
                             {
                                 check_fee: 0,
-                                check_utxos_spent: 0
+                                check_utxos_spent: 0,
+                                bitcoincash: 1
                             },
                             {
                                 raw_transaction: transaction,
@@ -909,7 +916,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BTG) {
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
