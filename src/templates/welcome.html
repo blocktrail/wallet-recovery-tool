@@ -1,4 +1,4 @@
-<section class="welcome" ng-if="CONFIG.RECOVER_BCC">
+<section class="welcome" ng-if="CONFIG.LOGIN_BASED_RECOVERY">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
         <h2 style="margin-top: 20px; margin-bottom: 20px;">Bitcoin Cash Recovery Tool</h2>
@@ -28,7 +28,7 @@
         </div>
     </div>
 </section>
-<section class="welcome" ng-if="!CONFIG.RECOVER_BCC">
+<section class="welcome" ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
         <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Recovery Tool</h2>
