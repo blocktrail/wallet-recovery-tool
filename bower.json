@@ -17,7 +17,7 @@
   "dependencies": {
     "angular": "1.4.7",
     "angular-ui": "angular-ui-bootstrap-bower#0.14.3",
-    "blocktrail-sdk": "3.3.2",
+    "blocktrail-sdk": "git://github.com/blocktrail/blocktrail-sdk-nodejs#btg-build",
     "bootstrap": "bootstrap-sass#3.3.5",
     "html5-qrcode": "git://github.com/dwa012/html5-qrcode",
     "pdfjs-dist": "~1.2.89",
