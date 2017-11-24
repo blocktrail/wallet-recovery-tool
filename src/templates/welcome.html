@@ -1,16 +1,16 @@
 <section class="welcome" ng-if="CONFIG.LOGIN_BASED_RECOVERY">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
-        <h2 style="margin-top: 20px; margin-bottom: 20px;">Bitcoin Cash Recovery Tool</h2>
+        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK }} Recovery Tool</h2>
     </div>
     <hr/>
     <div class="row">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div class="alert alert-warning">
-                This tool will allow you to extract your Bitcoin Cash from your BTC.com wallet.
+                This tool will allow you to extract your {{ CONFIG.NETWORK }} from your BTC.com wallet.
                 For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
                 <br />
-                When moving your Bitcoin Cash out of your wallet your normal Bitcoin will remain in your wallet
+                When moving your {{ CONFIG.NETWORK }} out of your wallet your normal Bitcoin will remain in your wallet
                 and accessible through the normal wallet as if nothing happened.<br />
                 <br />
                 We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
@@ -24,7 +24,7 @@
     </div>
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
-            <a href="https://blog.btc.com/your-bitcoin-cash-is-safe-with-btc-com-39b271da5692" target="_blank">Read our announcement regarding Bitcoin Cash on our Blog</a>
+            <a href="https://blog.btc.com/your-bitcoin-cash-is-safe-with-btc-com-39b271da5692" target="_blank">Read our announcement regarding {{ CONFIG.NETWORK }} on our Blog</a>
         </div>
     </div>
 </section>
