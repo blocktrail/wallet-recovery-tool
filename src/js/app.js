@@ -820,11 +820,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                         }
 
                         return sdk.client.post(
-                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/signbcc",
+                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/" + window.APPCONFIG.COSIGN_ENDPOINT,
                             {
                                 check_fee: 0,
-                                check_utxos_spent: 0,
-                                bitcoincash: 1
+                                check_utxos_spent: 0
                             },
                             {
                                 raw_transaction: transaction,
