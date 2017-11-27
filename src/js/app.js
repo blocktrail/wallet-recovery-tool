@@ -825,7 +825,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
                         var twoFactorToken = null;
                         if ($scope.backupDataV2.cosignTwoFactorRequired) {
-                            twoFactorToken = prompt("Please provide a two-factor authentication token for sign the transaction");
+                            twoFactorToken = prompt("Please provide a two-factor authentication token to send the transaction");
                         }
 
                         return sdk.client.post(

@@ -23,8 +23,13 @@
         </div>
     </div>
     <div class="row" style="margin-top: 20px">
-        <div class="col-xs-6 col-xs-offset-3 text-center">
+        <div ng-if="CONFIG.NETWORK === 'BCC'"
+             class="col-xs-6 col-xs-offset-3 text-center">
             <a href="https://blog.btc.com/your-bitcoin-cash-is-safe-with-btc-com-39b271da5692" target="_blank">Read our announcement regarding {{ CONFIG.NETWORK }} on our Blog</a>
+        </div>
+        <div ng-if="CONFIG.NETWORK === 'BTG'"
+             class="col-xs-6 col-xs-offset-3 text-center">
+            <a href="https://blog.btc.com/btc-coms-bitcoin-gold-recovery-tool-cc5c6cb0a5e0" target="_blank">Read our announcement regarding {{ CONFIG.NETWORK }} on our Blog</a>
         </div>
     </div>
 </section>
