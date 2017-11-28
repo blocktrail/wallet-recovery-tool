@@ -154,6 +154,7 @@ gulp.task('templates:index', ['appconfig'], function(done) {
         gulp.src("./src/index.html")
             .pipe(template({
                 VERSION: APPCONFIG.VERSION,
+                APPCONFIG: APPCONFIG,
                 APPCONFIG_JSON: JSON.stringify(APPCONFIG)
             }))
             .pipe(gulp.dest("./build"))
