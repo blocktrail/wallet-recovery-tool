@@ -78,7 +78,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
     ];
 
     if (window.APPCONFIG.RECOVER_LITECOIN) {
-        $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://insight.litecore.io/api", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
 
         // remove blocktrail
         $scope.dataServices.shift()
