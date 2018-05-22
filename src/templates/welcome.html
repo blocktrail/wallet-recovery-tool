@@ -1,25 +1,38 @@
-<section class="welcome" ng-if="CONFIG.LOGIN_BASED_RECOVERY">
+<section class="welcome">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
-        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK }} Recovery Tool</h2>
+        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Recovery Tool</h2>
     </div>
     <hr/>
     <div class="row">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div class="alert alert-warning">
-                This tool will allow you to extract your {{ CONFIG.NETWORK }} from your BTC.com wallet.
-                For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
-                <br />
-                When moving your {{ CONFIG.NETWORK }} out of your wallet your normal Bitcoin will remain in your wallet
-                and accessible through the normal wallet as if nothing happened.<br />
-                <br />
-                We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
+                <div ng-if="CONFIG.NETWORK != 'BTC'">
+                    This tool will allow you to extract your {{ CONFIG.NETWORK }} from your BTC.com wallet.
+                    For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
+                    <br />
+                    When moving your {{ CONFIG.NETWORK }} out of your wallet your normal Bitcoin will remain in your wallet
+                    and accessible through the normal wallet as if nothing happened.<br />
+                    <br />
+                    We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
+                </div>
+                <div ng-if="CONFIG.NETWORK == 'BTC'">
+                    This tool will allow you to recovery your Bitcoin from your BTC.com wallet.
+                    For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
+                    <br />
+                    We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
+                </div>
             </div>
         </div>
     </div>
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
-            <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin Recovery</button>
+            <div ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
+                <button class="btn btn btn-primary btn-lg" ng-click="goStep1()">Begin Recovery</button>
+            </div>
+            <div ng-if="CONFIG.LOGIN_BASED_RECOVERY">
+                <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin Recovery</button>
+            </div>
         </div>
     </div>
     <div class="row" style="margin-top: 20px">
@@ -30,34 +43,6 @@
         <div ng-if="CONFIG.NETWORK === 'BTG'"
              class="col-xs-6 col-xs-offset-3 text-center">
             <a href="https://blog.btc.com/btc-coms-bitcoin-gold-recovery-tool-cc5c6cb0a5e0" target="_blank">Read our announcement regarding {{ CONFIG.NETWORK }} on our Blog</a>
-        </div>
-    </div>
-</section>
-<section class="welcome" ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
-    <div class=" text-center" style="margin-top: 50px;">
-        <img src="logo.png" style="width: 300px; height: auto;" />
-        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Recovery Tool</h2>
-    </div>
-    <hr/>
-    <div class="row">
-        <div class="col-xs-6 col-xs-offset-3 text-center">
-            <div class="alert alert-warning">
-                This tool will allow you to recovery your Bitcoin from your BTC.com wallet.
-                For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
-                <br />
-                We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
-            </div>
-        </div>
-    </div>
-    <div class="row" style="margin-top: 20px">
-        <div>
-            <div class="col-xs-12 text-center" ng-if="CONFIG.LOGIN_BASED_RECOVERY">
-                <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin Recovery using Password</button>
-                <button class="btn btn btn-primary btn-lg" ng-click="nextStep('step_1')">Begin Recovery using Backup PDF</button>
-            </div>
-        </div>
-        <div class="col-xs-6 col-xs-offset-3 text-center" ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
-            <button class="btn btn btn-primary btn-lg" ng-click="nextStep('step_1')">Begin Recovery</button>
         </div>
     </div>
 </section>
