@@ -63,14 +63,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
     $scope.dataServices = [
         {
-            name: "Blocktrail.com",
-            value: "blocktrail_bitcoin_service",
-            apiKeyRequired: false,
-            apiSecretRequired: false,
-            defaultApiKey: "MY_APIKEY",
-            defaultApiSecret: "MY_APISECRET"
-        },
-        {
             name: "Insight Data Service",
             value: "insight_bitcoin_service",
             apiKeyRequired: false,
@@ -78,16 +70,23 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         }
     ];
 
+    // Only add Blocktrail service for tx publishing on BTC
+    if (window.APPCONFIG.NETWORK == 'BTC') {
+        var blocktrailService = {
+            name: "Blocktrail.com",
+            value: "blocktrail_bitcoin_service",
+            apiKeyRequired: false,
+            apiSecretRequired: false,
+            defaultApiKey: "MY_APIKEY",
+            defaultApiSecret: "MY_APISECRET"
+        };
+        $scope.dataServices.push(blocktrailService);
+    }
+
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
-
-        // remove blocktrail
-        $scope.dataServices.shift()
     } else if (window.APPCONFIG.RECOVER_BCC) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bcc-insight.btc.com/insight-api", recoverySheet: false};
-
-        // remove blocktrail
-        $scope.dataServices.shift()
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -735,7 +734,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             displayNetwork = $scope.recoveryNetwork;
         }
 
-        $scope.displayNetwork = displayNetwork
+        $scope.displayNetwork = displayNetwork;
 
         //delay to allow UI to update
         $timeout(function() {
