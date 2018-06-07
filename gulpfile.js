@@ -126,6 +126,7 @@ gulp.task('js:app', ['appconfig'], function(done) {
 gulp.task('js:sdk', ['appconfig'], function(done) {
     appConfig.then(function(APPCONFIG) {
         gulp.src([
+            "./src/libs/blocktrail-sdk/build/asmcrypto.js",
             "./src/libs/blocktrail-sdk/build/blocktrail-sdk-full.js"
         ])
             .pipe(concat('sdk.js'))
