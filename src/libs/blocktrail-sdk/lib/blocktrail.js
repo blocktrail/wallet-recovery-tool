@@ -7,7 +7,8 @@ var blocktrail = {
     COIN: 100000000,
     PRECISION: 8,
     DUST: 2730,
-    BASE_FEE: 10000
+    BASE_FEE: 10000,
+    LOCK_TIME_TIMESTAMP_THRESHOLD: 5000000
 };
 
 var convert = function(s, from, to) {
@@ -215,6 +216,7 @@ blocktrail.Error = Error.extend("Error", 500);
 
 blocktrail.FEE_STRATEGY_FORCE_FEE = 'force_fee';
 blocktrail.FEE_STRATEGY_BASE_FEE = 'base_fee';
+blocktrail.FEE_STRATEGY_HIGH_PRIORITY = 'high_priority';
 blocktrail.FEE_STRATEGY_OPTIMAL = 'optimal';
 blocktrail.FEE_STRATEGY_LOW_PRIORITY = 'low_priority';
 blocktrail.FEE_STRATEGY_MIN_RELAY_FEE = 'min_relay_fee';
