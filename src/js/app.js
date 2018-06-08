@@ -730,8 +730,12 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+        if (window.APPCONFIG.RECOVER_LITECOIN) {
             displayNetwork = $scope.recoveryNetwork;
+        }
+        if (window.APPCONFIG.RECOVER_BCC) {
+            displayNetwork = $scope.recoveryNetwork;
+            displayNetwork.value = 'bch';
         }
 
         $scope.displayNetwork = displayNetwork;
