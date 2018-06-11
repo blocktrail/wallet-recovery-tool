@@ -808,7 +808,17 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                 err = new blocktrailSDK.InvalidAddressError("Invalid network");
             }
         } catch (_err) {
-            err = _err;
+            if ("cashAddrPrefix" in network) {
+                try {
+                    addr = blocktrailSDK.bitcoin.address.toOutputScript(destinationAddress, network, true);
+                    addr = blocktrailSDK.bitcoin.address.fromOutputScript(addr, network, false);
+                    destinationAddress = addr;
+                } catch (_err) {
+                    err = _err;
+                }
+            } else {
+                err = _err;
+            }
         }
 
         if (!addr || err) {
