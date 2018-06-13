@@ -71,16 +71,24 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
     ];
 
     // Only add Blocktrail service for tx publishing on BTC
-    if (window.APPCONFIG.NETWORK == 'BTC') {
-        var blocktrailService = {
-            name: "Blocktrail.com",
-            value: "blocktrail_bitcoin_service",
-            apiKeyRequired: false,
-            apiSecretRequired: false,
-            defaultApiKey: "MY_APIKEY",
-            defaultApiSecret: "MY_APISECRET"
-        };
-        $scope.dataServices.push(blocktrailService);
+    if (window.APPCONFIG.NETWORK === 'BTC') {
+        $scope.dataServices = [
+            {
+                name: "Insight Data Service",
+                value: "insight_bitcoin_service",
+                apiKeyRequired: false,
+                apiSecretRequired: false
+            },
+            // TODO: Bring back blocktrail_bitcoin_service
+            // {
+            //     name: "BTC.com",
+            //     value: "blocktrail_bitcoin_service",
+            //     apiKeyRequired: false,
+            //     apiSecretRequired: false,
+            //     defaultApiKey: "MY_APIKEY",
+            //     defaultApiSecret: "MY_APISECRET"
+            // },
+        ];
     }
 
     if (window.APPCONFIG.RECOVER_LITECOIN) {
@@ -927,11 +935,16 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
+        // If Bitcoin network, might have segwit outputs, which Bitpay insight doesn't like and rejects...
+        if (recoveryNetwork.value === 'btc') {
+            service = "blocktrail"
+        }
+
         switch (service) {
             case 'blocktrail':
                 var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
-                    apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
-                    apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
+                    apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey || "MY_APIKEY",
+                    apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret || "MY_APISECRET",
                     network: recoveryNetwork.value,
                     testnet: recoveryNetwork.testnet
                 });
@@ -939,7 +952,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                     .then(function(result) {
                         console.log(result);
                         //$scope.alert({subtitle: "Success", message: "Transaction successfully relayed via Blocktrail: " + result.hash}, 'md');
-                        $scope.alert({subtitle: "Success - Transaction relayed by Blocktrail", message: "Your transaction hash is " + result.hash}, 'md');
+                        $scope.alert({subtitle: "Success - Transaction relayed by BTC.com", message: "Your transaction hash is " + result.hash}, 'md');
                         $scope.result.working = false;
                         $scope.recoveryComplete = true;
                     })
