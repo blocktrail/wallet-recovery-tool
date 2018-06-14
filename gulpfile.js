@@ -126,6 +126,7 @@ gulp.task('js:app', ['appconfig'], function(done) {
 gulp.task('js:sdk', ['appconfig'], function(done) {
     appConfig.then(function(APPCONFIG) {
         gulp.src([
+            "./src/libs/blocktrail-sdk/build/asmcrypto.js",
             "./src/libs/blocktrail-sdk/build/blocktrail-sdk-full.js"
         ])
             .pipe(concat('sdk.js'))
@@ -154,6 +155,7 @@ gulp.task('templates:index', ['appconfig'], function(done) {
         gulp.src("./src/index.html")
             .pipe(template({
                 VERSION: APPCONFIG.VERSION,
+                APPCONFIG: APPCONFIG,
                 APPCONFIG_JSON: JSON.stringify(APPCONFIG)
             }))
             .pipe(gulp.dest("./build"))

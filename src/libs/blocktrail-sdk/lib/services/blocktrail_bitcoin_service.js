@@ -14,8 +14,6 @@ var BlocktrailBitcoinService = function(options) {
         apiSecret:   null,
         network:     'BTC',
         testnet:     false,
-        apiVersion:  'v1',
-        apiEndpoint: null,
 
         retryLimit: 5,
         retryDelay:  20,
@@ -43,6 +41,15 @@ BlocktrailBitcoinService.prototype.normaliseNetwork =  function(network, testnet
         case 'tbtc':
         case 'bitcoin-testnet':
             return {network: "BTC", testnet: true};
+        case 'bcc':
+            if (testnet) {
+                return {network: "BCC", testnet: true};
+            } else {
+                return {network: "BCC", testnet: false};
+            }
+        break;
+        case 'tbcc':
+            return {network: "BCC", testnet: true};
         default:
             throw new Error("Unknown network " + network);
     }
@@ -56,7 +63,7 @@ BlocktrailBitcoinService.prototype.estimateFee = function() {
     var self = this;
 
     return self.client.feePerKB().then(function(r) {
-        return r['optimal'];
+        return Math.max(r['optimal'], r['min_relay_fee']);
     });
 };
 

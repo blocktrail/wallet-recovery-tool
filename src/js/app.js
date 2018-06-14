@@ -63,14 +63,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
     $scope.dataServices = [
         {
-            name: "Blocktrail.com",
-            value: "blocktrail_bitcoin_service",
-            apiKeyRequired: false,
-            apiSecretRequired: false,
-            defaultApiKey: "MY_APIKEY",
-            defaultApiSecret: "MY_APISECRET"
-        },
-        {
             name: "Insight Data Service",
             value: "insight_bitcoin_service",
             apiKeyRequired: false,
@@ -78,16 +70,31 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         }
     ];
 
+    // Only add Blocktrail service for tx publishing on BTC
+    if (window.APPCONFIG.NETWORK === 'BTC') {
+        $scope.dataServices = [
+            {
+                name: "Insight Data Service",
+                value: "insight_bitcoin_service",
+                apiKeyRequired: false,
+                apiSecretRequired: false
+            },
+            // TODO: Bring back blocktrail_bitcoin_service
+            // {
+            //     name: "BTC.com",
+            //     value: "blocktrail_bitcoin_service",
+            //     apiKeyRequired: false,
+            //     apiSecretRequired: false,
+            //     defaultApiKey: "MY_APIKEY",
+            //     defaultApiSecret: "MY_APISECRET"
+            // },
+        ];
+    }
+
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
-
-        // remove blocktrail
-        $scope.dataServices.shift()
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bcc-insight.btc.com/insight-api", recoverySheet: false};
-
-        // remove blocktrail
-        $scope.dataServices.shift()
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -371,6 +378,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
 
     $scope.doLogin = function() {
+        if (window.gtag) {
+            gtag('event', 'doLogin');
+        }
+
         $scope.loginData.error = null;
         var twoFactorToken = $scope.loginData.twoFactorToken;
         $scope.loginData.twoFactorToken = null; // consumed
@@ -514,6 +525,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
      * import a backup document and parse to get backup data
      */
     $scope.importBackup = function() {
+        if (window.gtag) {
+            gtag('event', 'importBackup');
+        }
 
         $modal.open({
             templateUrl: "templates/modal.import-backup.html",
@@ -545,6 +559,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
      * use password recovery feature for v2 wallets
      */
     $scope.lostPassword = function() {
+        if (window.gtag) {
+            gtag('event', 'lostPassword');
+        }
+
         $modal.open({
             templateUrl: "templates/modal.recover-password.html",
             controller: "recoverPasswordCtrl",
@@ -600,6 +618,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
      * @returns {boolean}
      */
     $scope.initWalletSweeper = function() {
+        if (window.gtag) {
+            gtag('event', 'initWalletSweeper');
+        }
+
         $scope.firstAddress = null;
 
         $scope.result = {working: true};
@@ -651,7 +673,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                 sweeperOptions.network = litecoinLatest;
             } else if (recoveryNetwork.value === "bcc") {
                 sweeperOptions.bitcoinCash = true;
-                sweeperOptions.network = "btc";
+                sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
             }
 
             if ($scope.activeWalletVersion.v2) {
@@ -684,6 +706,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
     };
 
     $scope.discoverFundsAgain = function() {
+        if (window.gtag) {
+            gtag('event', 'discoverFundsAgain');
+        }
+
         $timeout(function() {
             $scope.foundFunds = false;
             $scope.walletSweeper.settings.sweepBatchSize = $scope.recoverySettings.sweepBatchSize = $scope.recoverySettings.sweepBatchSize * 2;
@@ -698,6 +724,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
      * @returns {boolean}
      */
     $scope.discoverFunds = function() {
+        if (window.gtag) {
+            gtag('event', 'discoverFunds');
+        }
+
         if ($scope.result.working) {
             return false;
         }
@@ -708,11 +738,15 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.result = {working: true, message: "discovering funds...", progress: {message: 'Generating addresses (this may take a while). Please wait...'}};
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+        if (window.APPCONFIG.RECOVER_LITECOIN) {
             displayNetwork = $scope.recoveryNetwork;
         }
+        if (window.APPCONFIG.RECOVER_BCC) {
+            displayNetwork = $scope.recoveryNetwork;
+            displayNetwork.value = 'bch';
+        }
 
-        $scope.displayNetwork = displayNetwork
+        $scope.displayNetwork = displayNetwork;
 
         //delay to allow UI to update
         $timeout(function() {
@@ -759,6 +793,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
      * @returns {boolean}
      */
     $scope.recoverFunds = function(destinationAddress, inputForm) {
+        if (window.gtag) {
+            gtag('event', 'recoverFunds');
+        }
+
         if ($scope.result.working) {
             return false;
         }
@@ -778,7 +816,17 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                 err = new blocktrailSDK.InvalidAddressError("Invalid network");
             }
         } catch (_err) {
-            err = _err;
+            if ("cashAddrPrefix" in network) {
+                try {
+                    addr = blocktrailSDK.bitcoin.address.toOutputScript(destinationAddress, network, true);
+                    addr = blocktrailSDK.bitcoin.address.fromOutputScript(addr, network, false);
+                    destinationAddress = addr;
+                } catch (_err) {
+                    err = _err;
+                }
+            } else {
+                err = _err;
+            }
         }
 
         if (!addr || err) {
@@ -820,11 +868,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                         }
 
                         return sdk.client.post(
-                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/signbcc",
+                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/" + window.APPCONFIG.COSIGN_ENDPOINT,
                             {
                                 check_fee: 0,
-                                check_utxos_spent: 0,
-                                bitcoincash: 1
+                                check_utxos_spent: 0
                             },
                             {
                                 raw_transaction: transaction,
@@ -874,6 +921,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
 
     $scope.sendTx = function(service, txData) {
+        if (window.gtag) {
+            gtag('event', 'sendTx');
+        }
+
         if ($scope.result.working) {
             return false;
         }
@@ -884,11 +935,16 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
+        // If Bitcoin network, might have segwit outputs, which Bitpay insight doesn't like and rejects...
+        if (recoveryNetwork.value === 'btc') {
+            service = "blocktrail"
+        }
+
         switch (service) {
             case 'blocktrail':
                 var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
-                    apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey,
-                    apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret,
+                    apiKey: $scope.recoverySettings.apiKey || $scope.recoverySettings.dataService.defaultApiKey || "MY_APIKEY",
+                    apiSecret: $scope.recoverySettings.apiSecret || $scope.recoverySettings.dataService.defaultApiSecret || "MY_APISECRET",
                     network: recoveryNetwork.value,
                     testnet: recoveryNetwork.testnet
                 });
@@ -896,7 +952,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                     .then(function(result) {
                         console.log(result);
                         //$scope.alert({subtitle: "Success", message: "Transaction successfully relayed via Blocktrail: " + result.hash}, 'md');
-                        $scope.alert({subtitle: "Success - Transaction relayed by Blocktrail", message: "Your transaction hash is " + result.hash}, 'md');
+                        $scope.alert({subtitle: "Success - Transaction relayed by BTC.com", message: "Your transaction hash is " + result.hash}, 'md');
                         $scope.result.working = false;
                         $scope.recoveryComplete = true;
                     })

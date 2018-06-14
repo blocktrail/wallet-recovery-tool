@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="wallet-recovery">
 <head>
-    <title>BTC.com - Bitcoin Cash Wallet Recovery Tool</title>
+    <title id="recovery-title">BTC.com - Wallet Recovery Tool</title>
 
     <link rel="stylesheet" href="css/main.css?v=<%= VERSION %>">
 
@@ -10,6 +10,10 @@
     <script src="js/app.js?v=<%= VERSION %>"></script>
     <script>
         window.APPCONFIG = <%= APPCONFIG_JSON %>;
+
+        if (window.APPCONFIG.NETWORK_LONG) {
+            $('#recovery-title').text("BTC.com - " + window.APPCONFIG.NETWORK_LONG + " Recovery Tool");
+        }
     </script>
 </head>
 <body ng-controller="walletRecoveryCtrl" ng-class="{working: result.working}">
@@ -30,5 +34,16 @@
         // print first warning after 1s, just to let any initial console logging happen from other things
         setTimeout(consoleWarning, 1000);
     </script>
+
+    <% if (APPCONFIG.GA_TRACKING_ID) { %>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-66176065-31"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '<%= APPCONFIG.GA_TRACKING_ID %>');
+        </script>
+    <% } %>
 </body>
 </html>
