@@ -6,8 +6,9 @@ var CryptoJS = blocktrailSDK.CryptoJS;
 var litecoinLatest = {
     messagePrefix: '\x19Litecoin Signed Message:\n',
     bip32: {
-        public: 0x019da462,
-        private: 0x019d9cfe
+        // these are bitcoin's bip32 bytes, but we have bitcoin xpub on backup sheet / from API so we need it this way
+        public: 0x0488b21e,
+        private: 0x0488ade4
     },
     pubKeyHash: 0x30,
     scriptHash: 0x32,
@@ -78,7 +79,7 @@ app.controller('walletRecoveryCtrl', ["$scope", "$q", "$modal", "$rootScope", "$
     ];
 
     if (window.APPCONFIG.RECOVER_LITECOIN) {
-        $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://insight.litecore.io/api", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
 
         // remove blocktrail
         $scope.dataServices.shift()
