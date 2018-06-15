@@ -739,10 +739,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
         var displayNetwork = $scope.recoverySettings.selectedNetwork;
         if (window.APPCONFIG.RECOVER_LITECOIN) {
-            displayNetwork = $scope.recoveryNetwork;
+            displayNetwork =  Object.assign({}, $scope.recoveryNetwork);
         }
         if (window.APPCONFIG.RECOVER_BCC) {
-            displayNetwork = $scope.recoveryNetwork;
+            displayNetwork = Object.assign({}, $scope.recoveryNetwork);
             displayNetwork.value = 'bch';
         }
 
@@ -759,7 +759,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             $scope.firstAddress = firstAddr.address;
 
             // start discovery
-            $scope.walletSweeper.discoverWalletFunds()
+            $scope.walletSweeper.discoverWalletFunds($scope.recoverySettings.sweepBatchSize, {
+                excludeZeroConf: true
+            })
                 .progress(function(progress) {
                     $scope.$apply(function() {
                         $scope.result.progress = progress;
@@ -936,7 +938,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         }
 
         // If Bitcoin network, might have segwit outputs, which Bitpay insight doesn't like and rejects...
-        if (recoveryNetwork.value === 'btc') {
+        if (recoveryNetwork.value === 'btc' || recoveryNetwork.value === 'bcc' ) {
             service = "blocktrail"
         }
 
