@@ -63,8 +63,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
 
     $scope.dataServices = [
         {
-            name: "Insight Data Service",
-            value: "insight_bitcoin_service",
+            name: "SPV Data Service",
+            value: "spv_bitcoin_service",
             apiKeyRequired: false,
             apiSecretRequired: false
         }
@@ -95,6 +95,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
+    } else if (window.APPCONFIG.RECOVER_BSV) {
+        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "http://localhost:8080", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -634,7 +636,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
                 recoveryNetwork = $scope.recoveryNetwork;
             }
 
@@ -651,6 +653,12 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                     break;
                 case "insight_bitcoin_service":
                     bitcoinDataClient = new blocktrailSDK.InsightBitcoinService({
+                        testnet: recoveryNetwork.testnet,
+                        host: recoveryNetwork.insightHost
+                    });
+                    break;
+                case "spv_bitcoin_service":
+                    bitcoinDataClient = new blocktrailSDK.SPVBridgeBitcoinService({
                         testnet: recoveryNetwork.testnet,
                         host: recoveryNetwork.insightHost
                     });
@@ -672,6 +680,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             if (recoveryNetwork.value === "ltc") {
                 sweeperOptions.network = litecoinLatest;
             } else if (recoveryNetwork.value === "bcc") {
+                sweeperOptions.bitcoinCash = true;
+                sweeperOptions.cashAdrr = true;
+                sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
+            } else if (recoveryNetwork.value === "bsv") {
                 sweeperOptions.bitcoinCash = true;
                 sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
             }
@@ -744,6 +756,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         if (window.APPCONFIG.RECOVER_BCC) {
             displayNetwork = Object.assign({}, $scope.recoveryNetwork);
             displayNetwork.value = 'bch';
+        }
+        if (window.APPCONFIG.RECOVER_BSV) {
+            displayNetwork = Object.assign({}, $scope.recoveryNetwork);
+            displayNetwork.value = 'bsv';
         }
 
         $scope.displayNetwork = displayNetwork;
@@ -933,7 +949,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
