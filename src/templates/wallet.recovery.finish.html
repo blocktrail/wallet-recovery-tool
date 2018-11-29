@@ -24,6 +24,10 @@
                                 ng-click="sendTx('insight', {hex: signedTransaction})">
                             Broadcast Transaction via Insight
                         </button>
+                        <button ng-if="recoverySettings.dataService.value == 'spv_bitcoin_service'" class="btn btn-lg btn-success"
+                                ng-click="sendTx('spvbridge', {hex: signedTransaction})">
+                            Broadcast Transaction via SPV Bridge
+                        </button>
                     </p>
                 </div>
             </div>
