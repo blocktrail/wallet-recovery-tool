@@ -1,13 +1,13 @@
 <section class="welcome">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
-        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Recovery Tool</h2>
+        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Extraction Tool</h2>
     </div>
     <hr/>
     <div class="row">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div class="alert alert-warning">
-                <div ng-if="CONFIG.NETWORK != 'BTC'">
+                <div ng-if="CONFIG.NETWORK != 'BTC' && !CONFIG.RECOVER_BSV">
                     This tool will allow you to extract your {{ CONFIG.NETWORK }} from your BTC.com wallet.
                     For questions or help, please contact <a href="mailto:support@btc.com">support@btc.com</a><br />
                     <br />
@@ -22,16 +22,28 @@
                     <br />
                     We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile, on mobile it can take <b>very</b> long to recover.
                 </div>
+                <div ng-if="CONFIG.RECOVER_BSV">
+                    This tool will allow you to extract your {{ CONFIG.NETWORK }} from your BTC.com wallet.
+                    For questions or help, please make sure to <b>read <a href="https://blog.btc.com/replay-protection-and-bsv-extraction-tool-f0ff3ed8ca2f" target="_blank">our blog post</a></b> or contact <a href="mailto:support@btc.com">support@btc.com</a><br />
+                    <br />
+
+                    <br />
+                    We <b>strongly</b> recommend you run this tool on a desktop computer and not on mobile.
+                </div>
             </div>
+            <div class="alert alert-danger" ng-if="CONFIG.RECOVER_BSV">
+                <b>Important:</b> Before continuing, you should first visit your BCH wallet on BTC.com and send your full BCH balance to yourself. This is done to ensure your BCH coins are replay-protected.
+            </div>
+            <input type="checkbox" ng-model="iHaveReplayProtectedMyself"> I have sent my full BCH balance to myself in BTC.com wallet<br>
         </div>
     </div>
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
-                <button class="btn btn btn-primary btn-lg" ng-click="goStep1()">Begin Recovery</button>
+                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="goStep1()">Begin Extraction</button>
             </div>
             <div ng-if="CONFIG.LOGIN_BASED_RECOVERY">
-                <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin Recovery</button>
+                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="nextStep('login')">Begin Extraction</button>
             </div>
         </div>
     </div>
