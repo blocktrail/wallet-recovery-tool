@@ -958,6 +958,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
             service = "blocktrail"
         }
 
+        if (recoveryNetwork.value === 'bcc' && recoveryNetwork.name === 'Bitcoin SV') {
+            service = "spvbridge"
+        }
+
         switch (service) {
             case 'blocktrail':
                 var bitcoinDataClient = new blocktrailSDK.BlocktrailBitcoinService({
@@ -989,6 +993,25 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $rootScope, $l
                     .then(function(result) {
                         console.log(result);
                         $scope.alert({subtitle: "Success - Transaction relayed by Insight", message: "Your transaction hash is " + result.txid}, 'md');
+                        $scope.result.working = false;
+                        $scope.recoveryComplete = true;
+                    })
+                    .catch(function(result) {
+                        console.error(result);
+                        $scope.alert({subtitle: "Failed to send Transaction", message: result.data});
+                        $scope.result.working = false;
+                    });
+                break;
+            case 'spvbridge':
+                bitcoinDataClient = new blocktrailSDK.SPVBridgeBitcoinService({
+                    testnet: recoveryNetwork.testnet,
+                    host: recoveryNetwork.insightHost
+                });
+
+                bitcoinDataClient.sendTx(txData.hex)
+                    .then(function(result) {
+                        console.log(result);
+                        $scope.alert({subtitle: "Success - Transaction relayed by SPV Bridge", message: "Your transaction hash is " + result.txid}, 'md');
                         $scope.result.working = false;
                         $scope.recoveryComplete = true;
                     })
