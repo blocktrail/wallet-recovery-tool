@@ -44,7 +44,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.CONFIG = CONFIG;
 
     var identifier = $location.search().id;
-    $scope.iHaveReplayProtectedMyself = false;
+    // Toggle this if replay protection is not neccessary on network
+    $scope.iHaveReplayProtectedMyself = !(CONFIG.EXTRACTION || CONFIG.RECOVER_BSV);
 
     $scope.templateList = {
         "welcome": "templates/welcome.html",
@@ -74,23 +75,14 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     ];
 
     // Only add Blocktrail service for tx publishing on BTC
-    if (window.APPCONFIG.NETWORK === 'BTC') {
+    if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
         $scope.dataServices = [
             {
                 name: "Insight Data Service",
                 value: "insight_bitcoin_service",
                 apiKeyRequired: false,
                 apiSecretRequired: false
-            },
-            // TODO: Bring back blocktrail_bitcoin_service
-            // {
-            //     name: "BTC.com",
-            //     value: "blocktrail_bitcoin_service",
-            //     apiKeyRequired: false,
-            //     apiSecretRequired: false,
-            //     defaultApiKey: "MY_APIKEY",
-            //     defaultApiSecret: "MY_APISECRET"
-            // },
+            }
         ];
     }
 
@@ -99,7 +91,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     } else if (window.APPCONFIG.RECOVER_BCC) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
-        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "http://localhost:8080", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -412,7 +404,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 // walletIdentifier = "bitcoin-abc-recovery";
                 // walletPassword = "bitcoin-abc-recovery";
 
-                if (walletIdentifier !== identifier) {
+                if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION)) {
                     alert("In order to use this tool, you should first follow the steps in BTC.com wallet to replay-protect your BCH coins. Please visit our blog for more information");
                     throw new Error();
                 }

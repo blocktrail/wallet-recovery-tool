@@ -1,7 +1,7 @@
 <section class="welcome">
     <div class=" text-center" style="margin-top: 50px;">
         <img src="logo.png" style="width: 300px; height: auto;" />
-        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} Extraction Tool</h2>
+        <h2 style="margin-top: 20px; margin-bottom: 20px;">{{ CONFIG.NETWORK_LONG }} {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }} Tool</h2>
     </div>
     <hr/>
     <div class="row">
@@ -34,16 +34,18 @@
             <div class="alert alert-danger" ng-if="CONFIG.RECOVER_BSV">
                 <b>Important:</b> Before continuing, you should first visit your BCH wallet on BTC.com and send your full BCH balance to yourself. This is done to ensure your BCH coins are replay-protected.
             </div>
-            <input type="checkbox" ng-model="iHaveReplayProtectedMyself"> I have sent my full BCH balance to myself in BTC.com wallet<br>
+            <div ng-show="CONFIG.RECOVER_BSV">
+                <input type="checkbox" ng-model="iHaveReplayProtectedMyself"> I have sent my full BCH balance to myself in BTC.com wallet<br>
+            </div>
         </div>
     </div>
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
-                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="goStep1()">Begin Extraction</button>
+                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
             </div>
             <div ng-if="CONFIG.LOGIN_BASED_RECOVERY">
-                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="nextStep('login')">Begin Extraction</button>
+                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="nextStep('login')">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
             </div>
         </div>
     </div>
