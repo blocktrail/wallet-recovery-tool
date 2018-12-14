@@ -26,6 +26,7 @@ var WalletSweeper = function(backupData, bitcoinDataClient, options) {
         regtest: false,
         logging: false,
         bitcoinCash: false,
+        cashAddr: false,
         sweepBatchSize: 200
     };
     this.settings = _.merge({}, this.defaultSettings, options);
@@ -249,6 +250,16 @@ WalletSweeper.prototype.getBitcoinNetwork =  function(network, testnet, regtest)
         case 'tbtc':
         case 'bitcoin-testnet':
             return bitcoin.networks.testnet;
+        case 'bcc':
+        case 'bch':
+        case 'bitcoincash':
+            if (regtest) {
+                return bitcoin.networks.bitcoincashregtest;
+            } else if (testnet) {
+                return bitcoin.networks.bitcoincashtestnet;
+            } else {
+                return bitcoin.networks.bitcoincash;
+            }
         default:
             throw new Error("Unknown network " + network);
     }
@@ -299,7 +310,7 @@ WalletSweeper.prototype.createAddress = function(path) {
 
     var multisig = bitcoin.script.multisig.output.encode(2, multisigKeys);
     var redeemScript, witnessScript;
-    if (this.network !== "bitcoincash" && scriptType === walletSDK.CHAIN_BTC_SEGWIT) {
+    if (!(this.network.cashAddrPrefix || this.settings.bitcoinCash) && scriptType === walletSDK.CHAIN_BTC_SEGWIT) {
         witnessScript = multisig;
         redeemScript = bitcoin.script.witnessScriptHash.output.encode(bitcoin.crypto.sha256(witnessScript));
     } else {
@@ -313,7 +324,7 @@ WalletSweeper.prototype.createAddress = function(path) {
     if (typeof this.network !== "undefined") {
         network = this.network;
     }
-    var address = bitcoin.address.fromOutputScript(scriptPubKey, network, !!this.settings.bitcoinCash);
+    var address = bitcoin.address.fromOutputScript(scriptPubKey, network, !!this.settings.bitcoinCash && !!this.settings.cashAddr);
 
     // Insight nodes want nothing to do with 'bitcoin:' or 'bitcoincash:' prefixes
     address = address.replace('bitcoin:', '').replace('bitcoincash:', '');
@@ -349,13 +360,27 @@ WalletSweeper.prototype.createBatchAddresses = function(start, count, keyIndex, 
     });
 };
 
-WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
+WalletSweeper.prototype.discoverWalletFunds = function(increment, options, cb) {
     var self = this;
     var totalBalance = 0;
     var totalUTXOs = 0;
     var totalAddressesGenerated = 0;
+
+    if (typeof increment === "function") {
+        cb = increment;
+        increment = null;
+    } else if (typeof options === "function") {
+        cb = options;
+        options = {};
+    }
+
+    if(options && !(typeof options === "object")) {
+        console.warn("Wallet Sweeper discovery options is not an object, ignoring");
+        options = {};
+    }
+
     var addressUTXOs = {};    //addresses and their utxos, paths and redeem scripts
-    if (typeof increment === "undefined") {
+    if (typeof increment === "undefined" || !increment) {
         increment = this.settings.sweepBatchSize;
     }
 
@@ -363,7 +388,10 @@ WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
     deferred.promise.nodeify(cb);
 
     var checkChain;
-    if (this.network === "bitcoincash") {
+    if (
+        this.network.cashAddrPrefix ||
+        this.settings.bitcoinCash
+    ) {
         checkChain = [0, 1];
     } else {
         checkChain = [0, 1, 2];
@@ -428,12 +456,35 @@ WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
 
                                             //get the unspent outputs for this batch of addresses
                                             return self.utxoFinder.getUTXOs(_.keys(batch)).then(function(utxos) {
+                                                if (options.excludeZeroConf) {
+                                                    // Do not evaluate 0-confirmation UTXOs
+                                                    // This would include double spends and other things Insight happily accepts
+                                                    // (and keeps in mempool - even when the parent UTXO gets spent otherwise)
+                                                    for (var address in utxos) {
+                                                        if (utxos.hasOwnProperty(address) && Array.isArray(utxos[address])) {
+                                                            var utxosPerAddress = utxos[address];
+                                                            // Iterate over utxos per address
+                                                            for (var idx = 0; idx < utxosPerAddress.length; idx++) {
+                                                                if (utxosPerAddress[idx] &&
+                                                                    'confirmations' in utxosPerAddress[idx]
+                                                                    && utxosPerAddress[idx]['confirmations'] === 0) {
+                                                                    // Delete if unconfirmed
+                                                                    delete utxos[address][idx];
+                                                                    utxos[address].length--;
+                                                                    if (utxos[address].length <= 0) {
+                                                                        delete utxos[address];
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
                                                 // save the address utxos, along with relevant path and redeem script
                                                 _.each(utxos, function(outputs, address) {
                                                     var witnessScript = null;
                                                     if (typeof batch[address]['witness'] !== 'undefined') {
                                                         witnessScript = batch[address]['witness'];
-
                                                     }
                                                     addressUTXOs[address] = {
                                                         path: batch[address]['path'],
@@ -557,6 +608,11 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
             return self.bitcoinDataClient.estimateFee();
         })
         .then(function(feePerKb) {
+            // Insight reports 1000 sat/kByte, but this is too low
+            if (self.settings.bitcoinCash && feePerKb < 5000) {
+                feePerKb = 5000;
+            }
+
             if (self.sweepData['balance'] === 0) {
                 //no funds found
                 deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
