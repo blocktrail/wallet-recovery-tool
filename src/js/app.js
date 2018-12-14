@@ -391,7 +391,21 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             device_name: navigator.userAgent || "Unknown Browser"
         }).then(
             function(result) {
-                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: "bch"});
+                var networkShortCode = null;
+                switch ($scope.recoveryNetwork.value) {
+                    case "btc":
+                        networkShortCode = "btc";
+                        break;
+                    case "ltc":
+                        networkShortCode = 'btc';
+                        break;
+                    case "bcc":
+                    case "bsv":
+                        networkShortCode = "bch";
+                        break;
+                }
+
+                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode});
 
                 // for cosigning
                 $scope.backupDataV2.sdk = sdk;
