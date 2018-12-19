@@ -2,33 +2,35 @@ var blocktrail = require('../blocktrail');
 var request = require('superagent');
 var _ = require('lodash');
 var q = require('q');
+var bitcoin = require('bitcoinjs-lib');
 
-var InsightEndpointMainnet = 'https://insight.bitpay.com/api';
-var InsightEndpointTestnet = 'https://test-insight.bitpay.com/api';
+/*
+This bridge works in conjunction with the open source project:
+    https://github.com/btccom/wallet-recovery-data-bridge/
+
+You can run your private instance on your home machine, simply change the
+options.host to http://localhost:[portOfBridge]
+where [portOfBridge] is the port on which your bridge is running (8080 by default)
+ */
 
 /**
  *
  * @param options
  * @constructor
  */
-var InsightBitcoinService = function(options) {
-    this.defaultSettings = {
-        host: InsightEndpointMainnet,
-        testnet: false,
+var SPVBridgeBitcoinService = function(options) {
+    if (!('host' in options)) {
+        throw new Error("provide a fully qualified URL for the server host in options!");
+    }
 
+    this.defaultSettings = {
         retryLimit: 5,
         retryDelay: 20
     };
 
     // Backwards compatibility: change default host to bitpay
     // if host not set but testnet requested.
-    if (typeof options.host === 'undefined' && options.testnet) {
-        this.defaultSettings.host = InsightEndpointTestnet;
-    }
-
     this.settings = _.merge({}, this.defaultSettings, options);
-    this.DEFAULT_ENDPOINT_MAINNET = InsightEndpointMainnet;
-    this.DEFAULT_ENDPOINT_TESTNET = InsightEndpointTestnet;
 };
 
 /**
@@ -39,13 +41,13 @@ var InsightBitcoinService = function(options) {
  * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as
  *                          { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
  */
-InsightBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
+SPVBridgeBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
     var self = this;
     var deferred = q.defer();
 
     //get unspent outputs for the chunk of addresses - required data: hash, index, value, and script hex,
-    var data = {"addrs": addresses.join(',')};
-    self.postEndpoint('addrs/utxo', data).then(function(results) {
+    var data = {"address": addresses};
+    self.postEndpoint('addressListUnspent', data).then(function(results) {
         var batchResults = {};  //utxos mapped to addresses
 
         //reduce the returned data into the values we're interested in, and map to the relevant addresses
@@ -57,11 +59,11 @@ InsightBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
             }
 
             batchResults[address].push({
-                'hash': utxo['txid'],
-                'index': utxo['vout'],
-                'value': blocktrail.toSatoshi(utxo['amount']),
-                'script_hex': utxo['scriptPubKey'],
-                'confirmations': utxo['confirmations']
+                'hash': utxo['tx_hash'],
+                'index': utxo['tx_pos'],
+                'value': utxo['value'],
+                'script_hex': bitcoin.address.toOutputScript(address, bitcoin.networks.bitcoincash),
+                'confirmations': 1 // TODO quickfix
             });
         });
         deferred.resolve(batchResults);
@@ -80,13 +82,13 @@ InsightBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
  * @param {array} addresses   array of addresses
  * @returns {q.Promise}
  */
-InsightBitcoinService.prototype.batchAddressHasTransactions = function(addresses) {
+SPVBridgeBitcoinService.prototype.batchAddressHasTransactions = function(addresses) {
     var self = this;
 
-    var data = {"addrs": addresses.join(',')};
-    return self.postEndpoint('addrs/txs', data)
+    var data = {"address": addresses};
+    return self.postEndpoint('addressHasTransactions', data)
         .then(function(results) {
-            return results.items.length > 0;
+            return results.length > 0;
         })
         ;
 };
@@ -96,12 +98,12 @@ InsightBitcoinService.prototype.batchAddressHasTransactions = function(addresses
  *
  * @returns {q.Promise}
  */
-InsightBitcoinService.prototype.estimateFee = function() {
+SPVBridgeBitcoinService.prototype.estimateFee = function() {
     var self = this;
 
     var nBlocks = "4";
 
-    return self.getEndpoint('utils/estimatefee?nbBlocks=' + nBlocks)
+    return self.getEndpoint('estimateFeeRate?confirmations=' + nBlocks)
         .then(function(results) {
             if (results[nBlocks] === -1) {
                 return 100000;
@@ -117,15 +119,15 @@ InsightBitcoinService.prototype.estimateFee = function() {
  * @param hex
  * @returns {*}
  */
-InsightBitcoinService.prototype.sendTx = function(hex) {
-    return this.postEndpoint('tx/send', {rawtx: hex});
+SPVBridgeBitcoinService.prototype.sendTx = function(hex) {
+    return this.postEndpoint('publishTx', {tx: hex});
 };
 
 /**
  * Makes a URL from the endpoint and issues a GET request.
  * @param endpoint
  */
-InsightBitcoinService.prototype.getEndpoint = function(endpoint) {
+SPVBridgeBitcoinService.prototype.getEndpoint = function(endpoint) {
     return this.getRequest(this.settings.host + '/' + endpoint);
 };
 
@@ -136,7 +138,7 @@ InsightBitcoinService.prototype.getEndpoint = function(endpoint) {
  * @param data
  * @returns {promise|Function|*}
  */
-InsightBitcoinService.prototype.postEndpoint = function(endpoint, data) {
+SPVBridgeBitcoinService.prototype.postEndpoint = function(endpoint, data) {
     return this.postRequest(this.settings.host + '/' + endpoint, data);
 };
 
@@ -145,7 +147,7 @@ InsightBitcoinService.prototype.postEndpoint = function(endpoint, data) {
  * @param url
  * @returns {promise|Function|*}
  */
-InsightBitcoinService.prototype.getRequest = function(url) {
+SPVBridgeBitcoinService.prototype.getRequest = function(url) {
     var deferred = q.defer();
     request
         .get(url)
@@ -181,7 +183,7 @@ InsightBitcoinService.prototype.getRequest = function(url) {
  * @param data
  * @returns {promise|Function|*}
  */
-InsightBitcoinService.prototype.postRequest = function(url, data) {
+SPVBridgeBitcoinService.prototype.postRequest = function(url, data) {
     var deferred = q.defer();
 
     request
@@ -214,4 +216,4 @@ InsightBitcoinService.prototype.postRequest = function(url, data) {
     return deferred.promise;
 };
 
-module.exports = InsightBitcoinService;
+module.exports = SPVBridgeBitcoinService;

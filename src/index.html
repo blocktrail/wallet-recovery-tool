@@ -12,7 +12,8 @@
         window.APPCONFIG = <%= APPCONFIG_JSON %>;
 
         if (window.APPCONFIG.NETWORK_LONG) {
-            $('#recovery-title').text("BTC.com - " + window.APPCONFIG.NETWORK_LONG + " Recovery Tool");
+            var descTitle = window.APPCONFIG.EXTRACTION ? "Extraction": "Recovery";
+            $('#recovery-title').text("BTC.com - " + window.APPCONFIG.NETWORK_LONG + " " + descTitle +" Tool");
         }
     </script>
 </head>

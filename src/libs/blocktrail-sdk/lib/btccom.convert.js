@@ -80,7 +80,7 @@ function convertBtccomOutputScriptType(scriptType) {
             return "scripthash";
         case "P2WSH_V0":
             return "witnessscripthash";
-        case "P2WPKH":
+        case "P2WPKH_V0":
             return "witnesspubkeyhash";
         case "NULL_DATA":
             return "op_return";
@@ -263,7 +263,7 @@ BtccomConverter.prototype.getUrlForAllBlocks = function() {
     return "/block/list";
 };
 
-BtccomConverter.prototype.handleErros = function(self, data) {
+BtccomConverter.prototype.handleErrors = function(self, data) {
     if (data.err_no === 0 || data.data !== null) {
         return data;
     } else {
