@@ -90,6 +90,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
+    } else if (window.APPCONFIG.RECOVER_BTG) {
+        $scope.recoveryNetwork = {name: "Bitcoin Gold", value: "btg", testnet: false, insightHost: "https://btg-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else {
@@ -650,7 +652,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
+            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BTG || window.APPCONFIG.RECOVER_BSV) {
                 recoveryNetwork = $scope.recoveryNetwork;
             }
 
@@ -770,6 +772,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         if (window.APPCONFIG.RECOVER_BCC) {
             displayNetwork = Object.assign({}, $scope.recoveryNetwork);
             displayNetwork.value = 'bch';
+        }
+        if (window.APPCONFIG.RECOVER_BTG) {
+            displayNetwork = Object.assign({}, $scope.recoveryNetwork);
+            displayNetwork.value = 'btg';
         }
         if (window.APPCONFIG.RECOVER_BSV) {
             displayNetwork = Object.assign({}, $scope.recoveryNetwork);
@@ -963,7 +969,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BTG || window.APPCONFIG.RECOVER_BSV) {
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
@@ -972,7 +978,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             service = "blocktrail"
         }
 
-        if (recoveryNetwork.name === 'Bitcoin SV') {
+        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Gold') {
             service = "spvbridge"
         }
 
