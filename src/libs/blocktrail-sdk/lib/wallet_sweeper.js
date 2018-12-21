@@ -27,6 +27,7 @@ var WalletSweeper = function(backupData, bitcoinDataClient, options) {
         logging: false,
         bitcoinCash: false,
         cashAddr: false,
+        bitcoinGold: false,
         sweepBatchSize: 200
     };
     this.settings = _.merge({}, this.defaultSettings, options);
@@ -259,6 +260,15 @@ WalletSweeper.prototype.getBitcoinNetwork =  function(network, testnet, regtest)
                 return bitcoin.networks.bitcoincashtestnet;
             } else {
                 return bitcoin.networks.bitcoincash;
+            }
+        case 'btg':
+        case 'bitcoingold':
+            if (regtest) {
+                return bitcoin.networks.regtest;
+            } else if (testnet) {
+                return bitcoin.networks.testnet;
+            } else {
+                return bitcoin.networks.bitcoin;
             }
         default:
             throw new Error("Unknown network " + network);
@@ -653,6 +663,8 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
     var rawTransaction = new bitcoin.TransactionBuilder(this.network);
     if (this.settings.bitcoinCash) {
         rawTransaction.enableBitcoinCash();
+    } else if (this.settings.bitcoinGold) {
+        rawTransaction.enableBitcoinGold();
     }
     var inputs = [];
     _.each(this.sweepData['utxos'], function(data, address) {
@@ -708,7 +720,7 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
                 value: input.value
             };
         });
-        fee = walletSDK.estimateVsizeFee(rawTransaction.tx, calcUtxos, feePerKb);
+        fee = walletSDK.estimateVsizeFee(rawTransaction.buildIncomplete(), calcUtxos, feePerKb);
     }
     rawTransaction.tx.outs[outputIdx].value -= fee;
 
@@ -728,7 +740,7 @@ WalletSweeper.prototype.signTransaction = function(rawTransaction, inputs) {
     }
 
     var sigHash = bitcoin.Transaction.SIGHASH_ALL;
-    if (this.settings.bitcoinCash) {
+    if (this.settings.bitcoinCash || this.settings.bitcoinGold) {
         sigHash |= bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143;
     }
 
