@@ -75,7 +75,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     ];
 
     // Only add Blocktrail service for tx publishing on BTC
-    if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
+    if (window.APPCONFIG.NETWORK === 'BTC') {
         $scope.dataServices = [
             {
                 name: "Insight Data Service",
@@ -89,7 +89,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BTG) {
         $scope.recoveryNetwork = {name: "Bitcoin Gold", value: "btg", testnet: false, insightHost: "https://btg-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
@@ -979,7 +979,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         }
 
         // TODO: Make dependant on SPV_BRDIGE flag in appconfig on next refactor
-        if (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.RECOVER_BTG) {
+        if (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.RECOVER_BTG || window.APPCONFIG.RECOVER_BCC) {
             service = "spvbridge"
         }
 
