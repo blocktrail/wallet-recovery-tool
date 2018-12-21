@@ -978,7 +978,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             service = "blocktrail"
         }
 
-        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Gold') {
+        // TODO: Make dependant on SPV_BRDIGE flag in appconfig on next refactor
+        if (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.RECOVER_BTG) {
             service = "spvbridge"
         }
 
