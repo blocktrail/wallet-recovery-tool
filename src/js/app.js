@@ -1282,23 +1282,22 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
                         //set the pubkey data decoded from the images
                         var pubKeyIndex = 0;
                         var promises = [];
+                        console.log('allPageImages', allPageImages);
                         allPageImages.forEach(function(pageImages, index) {
                             //first image of each page is always the blocktrail logo, other indexes correspond to qrcode decode attempts
-                            pageImages.forEach(function(decodedData, index) {
-                                if (index > 0) {
-                                    if ($scope.walletVersion == 2) {
-                                        $scope.dataV2.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
-                                        if (decodedData === null) {
-                                            //the qrcode couldn't be decoded...try and request it from the server
-                                            console.log('requesting blocktrail pubkey for ' + $scope.dataV2.blocktrailKeys[pubKeyIndex].keyIndex);
-                                            console.log($scope.dataV2.blocktrailKeys[pubKeyIndex])
-                                            promises.push($scope.requestWalletPubKey($scope.dataV2.blocktrailKeys[pubKeyIndex]));
-                                        }
-                                    } else {
-                                        $scope.dataV1.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
+                            pageImages.forEach(function(decodedData, imageIndex) {
+                                if ($scope.walletVersion == 2) {
+                                    $scope.dataV2.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
+                                    if (decodedData === null) {
+                                        //the qrcode couldn't be decoded...try and request it from the server
+                                        console.log('requesting blocktrail pubkey for ' + $scope.dataV2.blocktrailKeys[pubKeyIndex].keyIndex);
+                                        console.log($scope.dataV2.blocktrailKeys[pubKeyIndex])
+                                        promises.push($scope.requestWalletPubKey($scope.dataV2.blocktrailKeys[pubKeyIndex]));
                                     }
-                                    pubKeyIndex++;
+                                } else {
+                                    $scope.dataV1.blocktrailKeys[pubKeyIndex].pubkey = decodedData;
                                 }
+                                pubKeyIndex++;
                             });
                         });
 
