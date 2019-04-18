@@ -460,7 +460,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             },
             function(error) {
                 $scope.working = false;
-
+                window.fetchCaptchaToken();
                 if (error.data) {
                     error = blocktrailSDK.Request.handleFailure(error.data);
 
