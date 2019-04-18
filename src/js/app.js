@@ -388,6 +388,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             password: blocktrailSDK.CryptoJS.SHA512($scope.loginData.password).toString(),
             platform: "Recovery",
             two_factor_token: twoFactorToken,
+            captcha : window.captchaToken,
             device_name: navigator.userAgent || "Unknown Browser"
         }).then(
             function(result) {
