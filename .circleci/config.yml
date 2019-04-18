@@ -7,6 +7,23 @@ jobs:
     steps:
       - checkout
       # Download and cache dependencies
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
+              "NETWORK": "BCH",
+              "NETWORK_LONG": "Bitcoin Cash",
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": true,
+              "RECOVER_BTG": false,
+              "LOGIN_BASED_RECOVERY": false,
+              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "API_URL": "https://wallet-api.btc.com"
+            }
+            EOF
+
       - run: sudo npm install -g gulp@3.9.1
       - run: npm install gulp@3.9.1
       - run: npm install
@@ -27,6 +44,25 @@ jobs:
       - checkout
       # Download and cache dependencies
       - run: git checkout f/recover-sv
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
+              "NETWORK": "BSV",
+              "NETWORK_LONG": "Bitcoin SV (BSV)",
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": false,
+              "RECOVER_BSV": true,
+              "RECOVER_BTG": false,
+              "LOGIN_BASED_RECOVERY": true,
+              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "COSIGN_ENDPOINT": "signbsv",
+              "API_URL": "https://wallet-api.btc.com"
+            }
+            EOF
+
       - run: sudo npm install -g gulp@3.9.1
       - run: npm install gulp@3.9.1
       - run: npm install
@@ -45,6 +81,23 @@ jobs:
     steps:
       - checkout
       - run: git checkout btg
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+                "MINIFY": true,
+                "RECOVER_LITECOIN": false,
+                "RECOVER_BTG": true,
+                "NETWORK": "BTG",
+                "NETWORK_LONG": "Bitcoin Gold",
+                "LOGIN_BASED_RECOVERY": false,
+                "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+                "API_URL": "https://wallet-api.btc.com",
+                "GA_TRACKING_ID": "UA-66176065-31"
+            }
+            EOF
+
       # Download and cache dependencies
       - run: sudo npm install -g gulp@3.9.1
       - run: npm install gulp@3.9.1
