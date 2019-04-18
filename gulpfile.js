@@ -156,6 +156,7 @@ gulp.task('templates:index', ['appconfig'], function(done) {
             .pipe(template({
                 VERSION: APPCONFIG.VERSION,
                 APPCONFIG: APPCONFIG,
+                GOOGLE_RECAPTCHA_SITE_KEY: APPCONFIG.GOOGLE_RECAPTCHA_SITE_KEY,
                 APPCONFIG_JSON: JSON.stringify(APPCONFIG)
             }))
             .pipe(gulp.dest("./build"))

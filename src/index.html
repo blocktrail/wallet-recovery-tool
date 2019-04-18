@@ -46,5 +46,23 @@
             gtag('config', '<%= APPCONFIG.GA_TRACKING_ID %>');
         </script>
     <% } %>
+
+
+    <script src="https://www.recaptcha.net/recaptcha/api.js?render=<%= GOOGLE_RECAPTCHA_SITE_KEY %>"></script>
+    <script>
+        function fetchCaptchaToken() {
+            if (grecaptcha) {
+                grecaptcha.execute('<%= GOOGLE_RECAPTCHA_SITE_KEY %>', {action: 'homepage'}).then(function(token) {
+                    window.captchaToken = token;
+                });
+            }
+        }
+
+        if (grecaptcha) {
+            grecaptcha.ready(function() {
+                fetchCaptchaToken()
+            });
+        }
+    </script>
 </body>
 </html>
