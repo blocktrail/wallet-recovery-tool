@@ -1,0 +1,78 @@
+version: 2
+jobs:
+  recovery-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run: sudo npm install -g gulp
+      - run: npm install gulp
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync www s3://$RECOVERY_CDN
+
+
+  bsv-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run: git checkout f/recover-sv
+      - run: sudo npm install -g gulp
+      - run: npm install gulp
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync www s3://$BSV_RECOVERY_CDN
+
+  btg-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: git checkout btg
+      # Download and cache dependencies
+      - run: sudo npm install -g gulp
+      - run: npm install gulp
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync www s3://$BTG_RECOVERY_CDN
+
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - recovery-build:
+          filters:
+            branches:
+              only: /.*/
+
+      - bsv-build:
+          filters:
+            branches:
+              only: /.*/
+
+      - btg-build:
+          filters:
+            branches:
+              only: /.*/
