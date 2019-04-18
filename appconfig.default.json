@@ -7,5 +7,6 @@
     "EXTRACTION": false,
     "LOGIN_BASED_RECOVERY": false,
     "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
-    "API_URL": "https://api.blocktrail.com"
+    "API_URL": "https://wallet-api.btc.com",
+    "GOOGLE_RECAPTCHA_SITE_KEY": "6Lej1ZgUAAAAACLXn4ZqmeqdgEi-tTrZbV2TFeGl"
 }
