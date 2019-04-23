@@ -13,6 +13,41 @@ jobs:
             cat > appconfig.json <<EOF
             {
               "MINIFY": true,
+              "NETWORK": "BTC",
+              "NETWORK_LONG": "Bitcoin",
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": false,
+              "RECOVER_BTG": false,
+              "LOGIN_BASED_RECOVERY": false,
+              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "API_URL": "https://wallet-api.btc.com"
+            }
+            EOF
+
+      - run: sudo npm install -g gulp@3.9.1
+      - run: npm install gulp@3.9.1
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$RECOVERY_CDN
+
+  bch-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
               "NETWORK": "BCH",
               "NETWORK_LONG": "Bitcoin Cash",
               "RECOVER_LITECOIN": false,
@@ -33,8 +68,7 @@ jobs:
           name: sync to aws
           command: |
             ## shame on you CircleCi
-            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$RECOVERY_CDN
-
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BCH_RECOVERY_CDN
 
   bsv-build:
     docker:
@@ -116,6 +150,11 @@ workflows:
   build-deploy:
     jobs:
       - recovery-build:
+          filters:
+            branches:
+              only: /.*/
+
+      - bch-build:
           filters:
             branches:
               only: /.*/
