@@ -19,7 +19,7 @@ jobs:
               "RECOVER_BCC": false,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": false,
-              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
               "API_URL": "https://wallet-api.btc.com"
             }
             EOF
@@ -54,7 +54,7 @@ jobs:
               "RECOVER_BCC": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": false,
-              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
               "API_URL": "https://wallet-api.btc.com"
             }
             EOF
@@ -91,7 +91,7 @@ jobs:
               "RECOVER_BSV": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": true,
-              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
               "COSIGN_ENDPOINT": "signbsv",
               "API_URL": "https://wallet-api.btc.com"
             }
@@ -126,7 +126,7 @@ jobs:
                 "NETWORK": "BTG",
                 "NETWORK_LONG": "Bitcoin Gold",
                 "LOGIN_BASED_RECOVERY": false,
-                "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+                "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
                 "API_URL": "https://wallet-api.btc.com",
                 "GA_TRACKING_ID": "UA-66176065-31"
             }
