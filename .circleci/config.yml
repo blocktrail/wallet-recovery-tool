@@ -19,7 +19,7 @@ jobs:
               "RECOVER_BCC": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": false,
-              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
               "API_URL": "https://wallet-api.btc.com"
             }
             EOF
@@ -57,7 +57,7 @@ jobs:
               "RECOVER_BSV": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": true,
-              "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
               "COSIGN_ENDPOINT": "signbsv",
               "API_URL": "https://wallet-api.btc.com"
             }
@@ -92,7 +92,7 @@ jobs:
                 "NETWORK": "BTG",
                 "NETWORK_LONG": "Bitcoin Gold",
                 "LOGIN_BASED_RECOVERY": false,
-                "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+                "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
                 "API_URL": "https://wallet-api.btc.com",
                 "GA_TRACKING_ID": "UA-66176065-31"
             }
@@ -110,6 +110,45 @@ jobs:
             ## shame on you CircleCi
             AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BTG_RECOVERY_CDN
 
+  bcha-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run: git checkout f/recover-bcha
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
+              "NETWORK": "BCHA",
+              "NETWORK_LONG": "Bitcoin Cash ABC (BCHA)",
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": false,
+              "RECOVER_BSV": false,
+              "RECOVER_BTG": false,
+              "RECOVER_BCHA": true,
+              "LOGIN_BASED_RECOVERY": true,
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "COSIGN_ENDPOINT": "signbsv",
+              "API_URL": "https://wallet-api.btc.com"
+              "GOOGLE_RECAPTCHA_SITE_KEY": "6Lf6o7YZAAAAAHJu2vwVd-XQKZbTMxh0oA73pIa-"
+            }
+            EOF
+
+      - run: sudo npm install -g gulp@3.9.1
+      - run: npm install gulp@3.9.1
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BCHA_RECOVERY_CDN
 
 workflows:
   version: 2
@@ -121,6 +160,11 @@ workflows:
               only: /.*/
 
       - bsv-build:
+          filters:
+            branches:
+              only: /.*/
+
+      - bcha-build:
           filters:
             branches:
               only: /.*/
