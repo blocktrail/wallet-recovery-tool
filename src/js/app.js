@@ -44,8 +44,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.CONFIG = CONFIG;
 
     var identifier = $location.search().id;
+
     // Toggle this if replay protection is not neccessary on network
-    $scope.iHaveReplayProtectedMyself = !(CONFIG.EXTRACTION || CONFIG.RECOVER_BSV);
+    $scope.iHaveReplayProtectedMyself = !(CONFIG.EXTRACTION || CONFIG.RECOVER_BSV || CONFIG.RECOVER_BCHA);
 
     $scope.templateList = {
         "welcome": "templates/welcome.html",
@@ -92,6 +93,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.btc.com", recoverySheet: false};
+    } else if (window.APPCONFIG.RECOVER_BCHA) {
+        $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "http://127.0.0.1:9098/inner/btccom/wallet/bcha", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -184,7 +187,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         password: "",
         twoFactorToken: "",
         twoFactorRequired: false
-    }
+    };
 
     $scope.activeWalletVersion = {
         v1: false,
@@ -404,6 +407,9 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                     case "bsv":
                         networkShortCode = "bch";
                         break;
+                    case "bcha":
+                        networkShortCode = "bch";
+                        break;
                 }
 
                 var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode});
@@ -419,7 +425,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 // walletIdentifier = "bitcoin-abc-recovery";
                 // walletPassword = "bitcoin-abc-recovery";
 
-                if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION)) {
+                if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION || window.APPCONFIG.RECOVER_BCHA)) {
                     alert("In order to use this tool, you should first follow the steps in BTC.com wallet to replay-protect your BCH coins. Please visit our blog for more information");
                     throw new Error();
                 }
@@ -651,7 +657,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             });
 
             var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
+            if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.RECOVER_BCHA) {
                 recoveryNetwork = $scope.recoveryNetwork;
             }
 
@@ -700,6 +706,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
             } else if (recoveryNetwork.value === "bsv") {
                 sweeperOptions.bitcoinCash = true;
+                sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
+            } else if (recoveryNetwork.value === "bcha") {
+                sweeperOptions.bitcoinCash = true;
+                sweeperOptions.cashAdrr = true;
                 sweeperOptions.network = blocktrailSDK.bitcoin.networks.bitcoincash;
             }
 
@@ -775,6 +785,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         if (window.APPCONFIG.RECOVER_BSV) {
             displayNetwork = Object.assign({}, $scope.recoveryNetwork);
             displayNetwork.value = 'bsv';
+        }
+        if (window.APPCONFIG.RECOVER_BCHA) {
+            displayNetwork = Object.assign({}, $scope.recoveryNetwork);
+            displayNetwork.value = 'bcha';
         }
 
         $scope.displayNetwork = displayNetwork;
@@ -964,7 +978,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.result.working = true;
 
         var recoveryNetwork = $scope.recoverySettings.selectedNetwork;
-        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV) {
+        if (window.APPCONFIG.RECOVER_LITECOIN || window.APPCONFIG.RECOVER_BCC || window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.RECOVER_BCHA) {
             recoveryNetwork = $scope.recoveryNetwork;
         }
 
@@ -973,7 +987,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             service = "blocktrail"
         }
 
-        if (recoveryNetwork.name === 'Bitcoin SV') {
+        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC') {
             service = "spvbridge"
         }
 
