@@ -89,7 +89,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bch", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else {
