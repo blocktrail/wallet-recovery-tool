@@ -61,7 +61,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.subTemplate = "";
     $scope.forms = {};          //forms are used in directives with isolated scopes. need to keep them on this scope
     $scope.networks = [
-        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://insight.bitpay.com/api", recoverySheet: true},
+        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: true},
         {name: "Bitcoin Testnet", value: "tbtc", testnet: true, insightHost: "https://test-insight.bitpay.com/api", recoverySheet: true},
     ];
 
@@ -75,7 +75,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     ];
 
     // Only add Blocktrail service for tx publishing on BTC
-    if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
+    /*if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
         $scope.dataServices = [
             {
                 name: "Insight Data Service",
@@ -84,12 +84,12 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 apiSecretRequired: false
             }
         ];
-    }
+    }*/
 
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.blocktrail.com", recoverySheet: false};
     } else {
