@@ -94,7 +94,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.btc.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCHA) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "http://127.0.0.1:9098/inner/btccom/wallet/bcha", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bcha", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
