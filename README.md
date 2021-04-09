@@ -3,7 +3,7 @@
 
 This tool can be used to recover funds from a Blocktrail wallet using your backup file. It allows you to sweep all the funds from the wallet into any bitcoin address you provide.  
 
-See the <a target="_blank" href="http://blocktrail.github.io/wallet-recovery-tool">live version of tool.</a>
+See the <a target="_blank" href="https://recovery.btc.com/">live version of tool.</a>
 
 ## Things to Know...
 #####Supported Wallets
