@@ -1021,7 +1021,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             service = "blocktrail"
         }
 
-        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC' || recoveryNetwork.value === 'bcc') {
+        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC') {
             service = "spvbridge"
         }
 
