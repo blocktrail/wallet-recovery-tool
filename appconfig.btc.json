@@ -1,0 +1,13 @@
+{
+    "MINIFY": true,
+    "NETWORK": "BTC",
+    "NETWORK_LONG": "Bitcoin",
+    "RECOVER_LITECOIN": false,
+    "RECOVER_BCC": false,
+    "RECOVER_BCHA": false,
+    "RECOVER_BTG": false,
+    "LOGIN_BASED_RECOVERY": true,
+    "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+    "API_URL": "https://wallet-api.btc.com",
+    "GOOGLE_RECAPTCHA_SITE_KEY": "6Lf6o7YZAAAAAHJu2vwVd-XQKZbTMxh0oA73pIa-"
+}

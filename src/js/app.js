@@ -76,7 +76,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     ];
 
     // Only add Blocktrail service for tx publishing on BTC
-    if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
+    /*if (window.APPCONFIG.NETWORK === 'BTC' || window.APPCONFIG.NETWORK === 'BCH') {
         $scope.dataServices = [
             {
                 name: "Insight Data Service",
@@ -85,12 +85,12 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 apiSecretRequired: false
             }
         ];
-    }
+    }*/
 
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://bch-insight.bitpay.com/api", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bch", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.btc.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCHA) {
@@ -359,7 +359,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 }
                 break;
             case 3:
-                $scope.signedTransaction = null;
+                $scope.signedTransaction = [];
                 $scope.result = {};
                 break;
             case 4:
@@ -514,7 +514,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.result = {};
         $scope.walletSweeper = null;
         $scope.foundFunds = null;
-        $scope.signedTransaction = null;
+        $scope.signedTransaction = [];
         $scope.firstAddress = null;
         $scope.backupDataV1 = {
             walletVersion:      1,
@@ -885,54 +885,86 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $rootScope.clearLogs();
         $scope.result = {working: true, message: "generating transaction...", progress: {message: 'generating transaction. please wait...'}};
         try {
-            $scope.walletSweeper.sweepWallet(destinationAddress)
+            $scope.walletSweeper.sweepWalletHack(destinationAddress)
                 .progress(function(progress) {
                     $scope.$apply(function() {
                         $scope.result.progress = progress;
                     });
                     console.log(progress);
                 })
-                .then(function(transaction) {
-                    $log.debug(transaction);
+                .then(function(transactionList) {
+                    $log.debug(transactionList);
 
                     if ($scope.backupDataV2.cosign) {
                         var sdk = $scope.backupDataV2.sdk;
 
-                        var paths = [];
-                        var values = [];
+                        var utxoArray = [];
+                        console.log("sweepData['utxos']:",$scope.walletSweeper.sweepData['utxos']);
                         Object.keys($scope.walletSweeper.sweepData.utxos).forEach(function(address) {
                             var addrData = $scope.walletSweeper.sweepData.utxos[address];
-
                             addrData.utxos.forEach(function(utxo) {
-                                paths.push(addrData.path);
-                                values.push(utxo.value);
+                                utxoArray.push({
+                                    txid:         utxo['hash'],
+                                    vout:         utxo['index'],
+                                    scriptPubKey: utxo['script_hex'],
+                                    value:        utxo['value'],
+                                    address:      address,
+                                    path:         addrData['path'],
+                                    redeemScript: addrData['redeem'],
+                                    witnessScript: addrData['witness']
+                                });
                             });
                         });
+                        console.log("utxoArray:",utxoArray);
 
-                        var twoFactorToken = null;
-                        if ($scope.backupDataV2.cosignTwoFactorRequired) {
-                            twoFactorToken = prompt("Please provide a two-factor authentication token for sign the transaction");
+                        var i,j,temp,chunk,a=0;
+                        if (utxoArray.length > 300) {
+                            // Max input length = 300, otherwise the tx size over bitcoind limit.
+                            chunk = 300;
+                        } else {
+                            chunk = utxoArray.length;
                         }
 
-                        return sdk.blocktrailClient.post(
-                            "/wallet/" + $scope.backupDataV2.walletIdentifier + "/" + window.APPCONFIG.COSIGN_ENDPOINT,
-                            {
-                                check_fee: 0,
-                                check_utxos_spent: 0
-                            },
-                            {
-                                raw_transaction: transaction,
-                                paths: paths,
-                                values: values,
-                                two_factor_token: twoFactorToken
-                            }).then(function(result) {
-                                console.log(result);
-                                $timeout(function() {
-                                    $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
-                                    $scope.signedTransaction = result;
+                        var signedTransactionArray = [];
+                        for (i=0,j=utxoArray.length; i<j; i+=chunk) {
+                            temp = utxoArray.slice(i,i+chunk);
 
-                                    $scope.nextStep('finish');
-                                });
+                            var paths = [];
+                            var values = [];
+                            temp.forEach(function(utxo) {
+                                    paths.push(utxo.path);
+                                    values.push(utxo.value);
+                            });
+
+                            var twoFactorToken = null;
+                            if ($scope.backupDataV2.cosignTwoFactorRequired) {
+                                twoFactorToken = prompt("Please provide a two-factor authentication token for sign the transaction");
+                            }
+
+                            sdk.blocktrailClient.post(
+                                "/wallet/" + $scope.backupDataV2.walletIdentifier + "/" + window.APPCONFIG.COSIGN_ENDPOINT,
+                                {
+                                    check_fee: 0,
+                                    check_utxos_spent: 0
+                                },
+                                {
+                                    raw_transaction: transactionList[a],
+                                    paths: paths,
+                                    values: values,
+                                    two_factor_token: twoFactorToken
+                                }).then(function(result) {
+                                signedTransactionArray.push(result);
+
+                                if (i+chunk >= j) {
+                                    $timeout(function() {
+                                        $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
+                                        $scope.signedTransaction = signedTransactionArray.slice(0);
+                                        console.log("signedTransaction:",$scope.signedTransaction);
+
+                                        $scope.nextStep('finish');
+                                    });
+                                }
+
                             }, function(err) {
                                 if (err instanceof blocktrailSDK.WalletInvalid2FAError) {
                                     $scope.alert({subtitle: "Failed", message: "Invalid two-factor authentication token"}, 'md');
@@ -945,10 +977,12 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                                     throw err;
                                 }
                             });
+                            a++
+                        }
                     } else {
                         $timeout(function() {
                             $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
-                            $scope.signedTransaction = transaction;
+                            $scope.signedTransaction = transactionList;
 
                             $scope.nextStep('finish');
                         });
@@ -987,7 +1021,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             service = "blocktrail"
         }
 
-        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC') {
+        if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC' || recoveryNetwork.value === 'bcc') {
             service = "spvbridge"
         }
 
@@ -1036,19 +1070,24 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                     testnet: recoveryNetwork.testnet,
                     host: recoveryNetwork.insightHost
                 });
-
-                bitcoinDataClient.sendTx(txData.hex)
-                    .then(function(result) {
-                        console.log(result);
-                        $scope.alert({subtitle: "Success - Transaction relayed by SPV Bridge", message: "Your transaction hash is " + result.txid}, 'md');
-                        $scope.result.working = false;
-                        $scope.recoveryComplete = true;
-                    })
-                    .catch(function(result) {
-                        console.error(result);
-                        $scope.alert({subtitle: "Failed to send Transaction", message: result.data});
-                        $scope.result.working = false;
-                    });
+                var txList = [];
+                txData['hex'].forEach(function(hex){
+                    bitcoinDataClient.sendTx(hex)
+                        .then(function(result) {
+                            console.log(result);
+                            txList.push(result.txid);
+                            if (txList.length === txData['hex'].length) {
+                                $scope.alert({subtitle: "Success - Transaction relayed by SPV Bridge", message: "Your transaction hash: " + txList}, 'md');
+                                $scope.result.working = false;
+                                $scope.recoveryComplete = true;
+                            }
+                        })
+                        .catch(function(result) {
+                            console.error(result);
+                            $scope.alert({subtitle: "Failed to send Transaction", message: result.data});
+                            $scope.result.working = false;
+                        });
+                });
                 break;
             default:
                 break;
@@ -1585,7 +1624,6 @@ app.controller('importBackupCtrl', function($scope, $modalInstance, $timeout, $l
 });
 
 
-
 /*-----Helper Controllers-----*/
 app.controller('innerFormCtrl', function($scope, FormHelper) {
     //used in conjunction with ng-repeat and ng-form. Listens out for a call to validated the inner form
@@ -1596,4 +1634,3 @@ app.controller('innerFormCtrl', function($scope, FormHelper) {
         }
     });
 });
-
