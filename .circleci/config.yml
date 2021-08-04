@@ -63,7 +63,7 @@ jobs:
       - run: npm install gulp@3.9.1
       - run: npm install
       - run: gulp
-      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run: sudo apt install python-pip python-dev -y;sudo pip install -v awscli==1.19.46
       - run:
           name: sync to aws
           command: |
@@ -101,7 +101,7 @@ jobs:
       - run: npm install gulp@3.9.1
       - run: npm install
       - run: gulp
-      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run: sudo apt install python-pip python-dev -y;sudo pip install -v awscli==1.19.46
       - run:
           name: sync to aws
           command: |
@@ -137,7 +137,7 @@ jobs:
       - run: npm install gulp@3.9.1
       - run: npm install
       - run: gulp
-      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli
+      - run: sudo apt install python-pip python-dev -y;sudo pip install -v awscli==1.19.46
       - run:
           name: sync to aws
           command: |
