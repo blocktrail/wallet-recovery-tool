@@ -404,6 +404,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                         networkShortCode = 'btc';
                         break;
                     case "bcc":
+                        networkShortCode = "bch";
+                        break;
                     case "bsv":
                         networkShortCode = "bch";
                         break;
