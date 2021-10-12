@@ -161,14 +161,14 @@ workflows:
       - bsv-build:
           filters:
             branches:
-              only: /.*/
+              only: f/recover-sv
 
       - bcha-build:
           filters:
             branches:
-              only: /.*/
+              only: f/recover-bcha
 
       - btg-build:
           filters:
             branches:
-              only: /.*/
+              only: btg
