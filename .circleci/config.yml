@@ -156,7 +156,7 @@ workflows:
       - recovery-build:
           filters:
             branches:
-              only: /.*/
+              only: master
 
       - bsv-build:
           filters:
