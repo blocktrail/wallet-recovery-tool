@@ -152,19 +152,19 @@ workflows:
       - recovery-build:
           filters:
             branches:
-              only: /.*/
+              only: master
 
       - bch-build:
           filters:
             branches:
-              only: /.*/
+              only: master
 
       - bsv-build:
           filters:
             branches:
-              only: /.*/
+              only: f/recover-sv
 
       - btg-build:
           filters:
             branches:
-              only: /.*/
+              only: btg
