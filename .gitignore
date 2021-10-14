@@ -3,3 +3,6 @@ node_modules
 .sass-cache
 appconfig.json
 /.idea/
+wallet-recovery-tool.iml
+package-lock.json
+appconfig.bcha.json
