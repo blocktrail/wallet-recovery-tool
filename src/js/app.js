@@ -62,8 +62,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.subTemplate = "";
     $scope.forms = {};          //forms are used in directives with isolated scopes. need to keep them on this scope
     $scope.networks = [
-        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://insight.bitpay.com/api", recoverySheet: true},
-        {name: "Bitcoin Testnet", value: "tbtc", testnet: true, insightHost: "https://test-insight.bitpay.com/api", recoverySheet: true},
+        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: true},
+        // {name: "Bitcoin Testnet", value: "tbtc", testnet: true, insightHost: "https://test-insight.bitpay.com/api", recoverySheet: true},
     ];
 
     $scope.dataServices = [
@@ -95,6 +95,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.btc.com", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCHA) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bcha", recoverySheet: false};
+    } else if (window.APPCONFIG.RECOVER_BTC) {
+        $scope.recoveryNetwork = {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -470,10 +472,17 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 $scope.working = false;
                 window.fetchCaptchaToken();
                 if (error.data) {
+
+                    // handle error
+                    if (error.data.includes('banned')) {
+                        var ip = error.data.replace("banned ",'');
+                        return alert("Your IP "+ ip  +" is blocked, please contact support@btcm.group");
+                    }
+
                     error = blocktrailSDK.Request.handleFailure(error.data);
 
                     if (error.is_banned) {
-                        return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btc.com");
+                        return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btcm.group");
                     } else if (error.requires_sha512) {
                         return alert("Please login on www.blocktrail.com/dev/login first to upgrade your account");
                     } else if (error instanceof blocktrailSDK.WalletMissing2FAError) {
@@ -846,10 +855,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             gtag('event', 'recoverFunds');
         }
 
-        if ($scope.result.working) {
+            if ($scope.result.working) {
             return false;
         }
-        //validate input form
+        // validate input form
         if (inputForm && inputForm.$invalid) {
             FormHelper.setAllDirty(inputForm);
             return false;
@@ -857,7 +866,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
 
         var network = $scope.walletSweeper.network;
 
-        //validate destination address
+        // validate destination address
         var addr, err;
         try {
             addr = blocktrailSDK.bitcoin.address.fromBase58Check(destinationAddress, network);
@@ -884,10 +893,18 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
             return false;
         }
 
+        var maxInputLength;
+        var recoveryNetwork = $scope.recoveryNetwork;
+        if (recoveryNetwork.value === 'btc') {
+            maxInputLength = 200;
+        } else {
+            maxInputLength = 300;
+        }
+
         $rootScope.clearLogs();
         $scope.result = {working: true, message: "generating transaction...", progress: {message: 'generating transaction. please wait...'}};
         try {
-            $scope.walletSweeper.sweepWalletHack(destinationAddress)
+            $scope.walletSweeper.sweepWalletHack(destinationAddress, maxInputLength)
                 .progress(function(progress) {
                     $scope.$apply(function() {
                         $scope.result.progress = progress;
@@ -901,7 +918,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                         var sdk = $scope.backupDataV2.sdk;
 
                         var utxoArray = [];
-                        console.log("sweepData['utxos']:",$scope.walletSweeper.sweepData['utxos']);
                         Object.keys($scope.walletSweeper.sweepData.utxos).forEach(function(address) {
                             var addrData = $scope.walletSweeper.sweepData.utxos[address];
                             addrData.utxos.forEach(function(utxo) {
@@ -917,12 +933,11 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                                 });
                             });
                         });
-                        console.log("utxoArray:",utxoArray);
 
                         var i,j,temp,chunk,a=0;
-                        if (utxoArray.length > 300) {
+                        if (utxoArray.length > maxInputLength) {
                             // Max input length = 300, otherwise the tx size over bitcoind limit.
-                            chunk = 300;
+                            chunk = maxInputLength;
                         } else {
                             chunk = utxoArray.length;
                         }
@@ -955,13 +970,13 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                                     values: values,
                                     two_factor_token: twoFactorToken
                                 }).then(function(result) {
+
                                 signedTransactionArray.push(result);
 
                                 if (i+chunk >= j) {
                                     $timeout(function() {
                                         $scope.result = {working: false, complete: true, message: "Transaction ready to send"};
                                         $scope.signedTransaction = signedTransactionArray.slice(0);
-                                        console.log("signedTransaction:",$scope.signedTransaction);
 
                                         $scope.nextStep('finish');
                                     });
@@ -969,13 +984,19 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
 
                             }, function(err) {
                                 if (err instanceof blocktrailSDK.WalletInvalid2FAError) {
-                                    $scope.alert({subtitle: "Failed", message: "Invalid two-factor authentication token"}, 'md');
+                                    $scope.alert({subtitle: "Failed to create Transaction", message: "Invalid two-factor authentication token"}, 'md');
                                     $scope.result = {
                                         working: false,
                                         complete: false,
                                         message: "Invalid two-factor authentication token"
                                     };
                                 } else {
+                                    $scope.alert({subtitle: "Failed to create Transaction", message: "An error was returned: " + err.message}, 'md');
+                                    $scope.result = {
+                                        working: false,
+                                        complete: false,
+                                        message: "Failed creating transaction"
+                                    };
                                     throw err;
                                 }
                             });
@@ -1019,13 +1040,15 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         }
 
         // If Bitcoin network, might have segwit outputs, which Bitpay insight doesn't like and rejects...
-        if (recoveryNetwork.value === 'btc' || recoveryNetwork.value === 'bcc' ) {
+        /*if (recoveryNetwork.value === 'btc' || recoveryNetwork.value === 'bcc' ) {
             service = "blocktrail"
         }
 
         if (recoveryNetwork.name === 'Bitcoin SV' || recoveryNetwork.name === 'Bitcoin Cash ABC') {
             service = "spvbridge"
-        }
+        }*/
+
+        service = "spvbridge";
 
         switch (service) {
             case 'blocktrail':
@@ -1037,8 +1060,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 });
                 bitcoinDataClient.client.sendRawTransaction(txData.hex)
                     .then(function(result) {
-                        console.log(result);
-                        //$scope.alert({subtitle: "Success", message: "Transaction successfully relayed via Blocktrail: " + result.hash}, 'md');
                         $scope.alert({subtitle: "Success - Transaction relayed by BTC.com", message: "Your transaction hash is " + result.hash}, 'md');
                         $scope.result.working = false;
                         $scope.recoveryComplete = true;
@@ -1076,16 +1097,14 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 txData['hex'].forEach(function(hex){
                     bitcoinDataClient.sendTx(hex)
                         .then(function(result) {
-                            console.log(result);
                             txList.push(result.txid);
                             if (txList.length === txData['hex'].length) {
-                                $scope.alert({subtitle: "Success - Transaction relayed by SPV Bridge", message: "Your transaction hash: " + txList}, 'md');
+                                $scope.alert({subtitle: "Success - Transaction relayed by SPV Bridge", message: "Your transaction hash: \n" + txList.join(",\n")}, 'md');
                                 $scope.result.working = false;
                                 $scope.recoveryComplete = true;
                             }
                         })
                         .catch(function(result) {
-                            console.error(result);
                             $scope.alert({subtitle: "Failed to send Transaction", message: result.data});
                             $scope.result.working = false;
                         });

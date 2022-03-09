@@ -51,7 +51,10 @@ We've attached a ZIP with the `build` already done to every release and you can 
  - `cd build` 
  - run `serve` 
  - and visit `http://localhost:3000`
+ 
+##### Advise
 
+nodejs version >= v10.15.0
   
 ## Coming Soon...
 - set the transaction fee manually
