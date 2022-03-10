@@ -46,7 +46,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     var identifier = $location.search().id;
 
     // Toggle this if replay protection is not neccessary on network
-    $scope.iHaveReplayProtectedMyself = !(CONFIG.EXTRACTION || CONFIG.RECOVER_BSV || CONFIG.RECOVER_BCHA);
+    $scope.iHaveReplayProtectedMyself = !(CONFIG.RECOVER_BSV || CONFIG.RECOVER_BCHA);
 
     $scope.templateList = {
         "welcome": "templates/welcome.html",
@@ -430,7 +430,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 // walletPassword = "bitcoin-abc-recovery";
 
                 if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION || window.APPCONFIG.RECOVER_BCHA)) {
-                    alert("In order to use this tool, you should first follow the steps in BTC.com wallet to replay-protect your BCH coins. Please visit our blog for more information");
+                    // alert("In order to use this tool, you should first follow the steps in BTC.com wallet to replay-protect your BCH coins. Please visit our blog for more information");
+                    $scope.alert({subtitle: "Failed Login", message: "You have no permission, in order to use this tool, please contact support@btcm.group"}, 'md');
                     throw new Error();
                 }
 
@@ -484,7 +485,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                     if (error.is_banned) {
                         return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btcm.group");
                     } else if (error.requires_sha512) {
-                        return alert("Please login on www.blocktrail.com/dev/login first to upgrade your account");
+                        return alert("Please login on dev.btc.com/dev/login first to upgrade your account");
                     } else if (error instanceof blocktrailSDK.WalletMissing2FAError) {
                         $scope.loginData.twoFactorRequired = true;
                         $scope.loginData.error = "Two-factor Authentication required";
