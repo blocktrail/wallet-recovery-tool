@@ -51,17 +51,10 @@ We've attached a ZIP with the `build` already done to every release and you can 
  - `cd build` 
  - run `serve` 
  - and visit `http://localhost:3000`
-
-
-## coin - branch table
-| coin                                                         | branch                   |
-| ------------------------------------------------------------ | ---------------------- |
-| btc    |  master |
-| bch    |  master  |
-| bsv    |  f/recover-sv |
-| bcha   |  f/recover-bcha  |
-| btg    | btg|
-
  
+##### Advise
+
+nodejs version >= v10.15.0
+  
 ## Coming Soon...
 - set the transaction fee manually

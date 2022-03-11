@@ -15,10 +15,13 @@ jobs:
               "MINIFY": true,
               "NETWORK": "BTC",
               "NETWORK_LONG": "Bitcoin",
+              "RECOVER_BTC": true,
               "RECOVER_LITECOIN": false,
               "RECOVER_BCC": false,
               "RECOVER_BTG": false,
-              "LOGIN_BASED_RECOVERY": false,
+              "EXTRACTION": false,
+              "LOGIN_BASED_RECOVERY": true,
+              "COSIGN_ENDPOINT": "signbsv",
               "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
               "API_URL": "https://wallet-api.btc.com"
             }
@@ -50,10 +53,13 @@ jobs:
               "MINIFY": true,
               "NETWORK": "BCH",
               "NETWORK_LONG": "Bitcoin Cash",
+              "RECOVER_BTC": false,
               "RECOVER_LITECOIN": false,
               "RECOVER_BCC": true,
               "RECOVER_BTG": false,
-              "LOGIN_BASED_RECOVERY": false,
+              "EXTRACTION": false,
+              "LOGIN_BASED_RECOVERY": true,
+              "COSIGN_ENDPOINT": "signbsv",
               "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
               "API_URL": "https://wallet-api.btc.com"
             }
@@ -144,6 +150,86 @@ jobs:
             ## shame on you CircleCi
             AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BTG_RECOVERY_CDN
 
+  btc-withdraw-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run: git checkout f/withdraw
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
+              "NETWORK": "BTC",
+              "NETWORK_LONG": "Bitcoin",
+              "RECOVER_BTC": true,
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": false,
+              "RECOVER_BSV": false,
+              "RECOVER_BTG": false,
+              "RECOVER_BCHA": false,
+              "EXTRACTION": false,
+              "LOGIN_BASED_RECOVERY": true,
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "COSIGN_ENDPOINT": "signbsv",
+              "API_URL": "https://wallet-api.btc.com"
+            }
+            EOF
+      - run: sudo npm install -g gulp@3.9.1
+      - run: npm install gulp@3.9.1
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli==1.19.46
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BTC_WITHDRAW_CDN
+
+  bch-withdraw-build:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - run: git checkout f/withdraw
+      - run:
+          name: generate config
+          command: |
+            cat > appconfig.json <<EOF
+            {
+              "MINIFY": true,
+              "NETWORK": "BCH",
+              "NETWORK_LONG": "Bitcoin Cash",
+              "RECOVER_BTC": false,
+              "RECOVER_LITECOIN": false,
+              "RECOVER_BCC": true,
+              "RECOVER_BSV": false,
+              "RECOVER_BTG": false,
+              "RECOVER_BCHA": false,
+              "EXTRACTION": false,
+              "LOGIN_BASED_RECOVERY": true,
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "COSIGN_ENDPOINT": "signbsv",
+              "API_URL": "https://wallet-api.btc.com"
+            }
+            EOF
+      - run: sudo npm install -g gulp@3.9.1
+      - run: npm install gulp@3.9.1
+      - run: npm install
+      - run: gulp
+      - run: sudo apt install python-pip python-dev -y;sudo pip install awscli==1.19.46
+      - run:
+          name: sync to aws
+          command: |
+            ## shame on you CircleCi
+            AWS_ACCESS_KEY_ID=$MY_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$MY_AWS_SECRET_ACCESS_KEY aws s3 sync build s3://$BCH_WITHDRAW_CDN
+
 
 workflows:
   version: 2
@@ -168,3 +254,13 @@ workflows:
           filters:
             branches:
               only: btg
+
+      - btc-withdraw-build:
+          filters:
+            branches:
+              only: f/withdraw
+
+      - bch-withdraw-build:
+          filters:
+            branches:
+              only: f/withdraw
