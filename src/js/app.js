@@ -48,6 +48,8 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     // Toggle this if replay protection is not neccessary on network
     $scope.iHaveReplayProtectedMyself = !(CONFIG.RECOVER_BSV || CONFIG.RECOVER_BCHA);
 
+    $scope.iHaveBackUpPDF = true;
+
     $scope.templateList = {
         "welcome": "templates/welcome.html",
         "recover": "templates/wallet.recovery.html",
@@ -199,7 +201,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.result = {};
     $scope.breadcrumbs = false;
     $scope.recoveryComplete = false;
-
 
     /*--------------------debugging---------*/
     /*
@@ -388,6 +389,16 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
         var twoFactorToken = $scope.loginData.twoFactorToken;
         $scope.loginData.twoFactorToken = null; // consumed
 
+        // check form data
+        if ($scope.loginData.login === "") {
+            alert("You must provide a vaild email address");
+            throw new Error();
+        }
+        if ($scope.loginData.password === "") {
+            alert("You must provide a vaild password");
+            throw new Error();
+        }
+
         $http.post(CONFIG.API_URL + "/v1/" + ($scope.recoveryNetwork.testnet ? "t" : "") + "BTC/mywallet/enable", {
             login: $scope.loginData.login,
             password: blocktrailSDK.CryptoJS.SHA512($scope.loginData.password).toString(),
@@ -429,11 +440,10 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 // walletIdentifier = "bitcoin-abc-recovery";
                 // walletPassword = "bitcoin-abc-recovery";
 
-                if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION || window.APPCONFIG.RECOVER_BCHA)) {
-                    // alert("In order to use this tool, you should first follow the steps in BTC.com wallet to replay-protect your BCH coins. Please visit our blog for more information");
+                /*if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION || window.APPCONFIG.RECOVER_BCHA)) {
                     $scope.alert({subtitle: "Failed Login", message: "You have no permission, in order to use this tool, please contact support@btcm.group"}, 'md');
                     throw new Error();
-                }
+                }*/
 
                 return sdk.blocktrailClient.get("/wallet/" + walletIdentifier).then(function(wallet) {
                     var encryptedPrimaryMnemonic;
@@ -474,12 +484,6 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 window.fetchCaptchaToken();
                 if (error.data) {
 
-                    // handle error
-                    if (error.data.includes('banned')) {
-                        var ip = error.data.replace("banned ",'');
-                        return alert("Your IP "+ ip  +" is blocked, please contact support@btcm.group");
-                    }
-
                     error = blocktrailSDK.Request.handleFailure(error.data);
 
                     if (error.is_banned) {
@@ -493,6 +497,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                         $scope.loginData.error = "Two-factor Authentication incorrect";
                     } else {
                         $scope.loginData.error = "Failed Login";
+                        return alert("Failed Login, " + error);
                     }
                 } else {
                     $scope.loginData.error = "Failed Login";
