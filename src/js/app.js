@@ -391,11 +391,11 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
 
         // check form data
         if ($scope.loginData.login === "") {
-            alert("You must provide a vaild email address");
+            alert("You must provide valid email address");
             throw new Error();
         }
         if ($scope.loginData.password === "") {
-            alert("You must provide a vaild password");
+            alert("You must provide valid password");
             throw new Error();
         }
 
