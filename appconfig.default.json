@@ -6,7 +6,7 @@
     "RECOVER_BCC": false,
     "EXTRACTION": false,
     "LOGIN_BASED_RECOVERY": false,
-    "RECOVERY_BACKEND": "https://recovery-backend.blocktrail.com",
+    "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
     "API_URL": "https://wallet-api.btc.com",
     "GOOGLE_RECAPTCHA_SITE_KEY": "6Lf6o7YZAAAAAHJu2vwVd-XQKZbTMxh0oA73pIa-"
 }
