@@ -427,7 +427,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                         break;
                 }
 
-                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode});
+                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode, host: CONFIG.BLOCKTRAIL_SDK_HOST});
 
                 // for cosigning
                 $scope.backupDataV2.sdk = sdk;
