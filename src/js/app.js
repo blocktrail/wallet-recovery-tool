@@ -94,7 +94,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     } else if (window.APPCONFIG.RECOVER_BCC) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bch", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
-        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://bsv-recovery-proxy.btc.com", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bsv", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCHA) {
         $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bcha", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BTC) {
@@ -427,7 +427,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                         break;
                 }
 
-                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode});
+                var sdk = new blocktrailSDK({apiKey: result.data.api_key, apiSecret: result.data.api_secret, testnet: $scope.recoveryNetwork.testnet, network: networkShortCode, host: CONFIG.BLOCKTRAIL_SDK_HOST});
 
                 // for cosigning
                 $scope.backupDataV2.sdk = sdk;
