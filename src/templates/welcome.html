@@ -45,6 +45,7 @@
             <div ng-show="CONFIG.RECOVER_BSV">
                 <input type="checkbox" ng-model="iHaveReplayProtectedMyself"> I have sent my full BCH balance to myself in BTC.com wallet<br>
             </div>
+
             <div class="alert alert-danger" ng-if="CONFIG.RECOVER_BCHA">
                 <b>Important:</b> Before continuing, you should first visit your BCH wallet on BTC.com and send your full BCH balance to yourself. This is done to ensure your BCH coins are replay-protected.
             </div>
@@ -56,14 +57,22 @@
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div ng-show="CONFIG.NETWORK == 'BTC' || CONFIG.NETWORK == 'BCH'">
-                <input type="checkbox" ng-model="iHaveBackUpPDF"> Do you have your backup PDF?<br>
+                <input type="checkbox" ng-model="iHaveBackUpPDF"> I have my backup PDF<br>
+                <div ng-if="iHaveBackUpPDF">
+                    <button class="btn btn btn-primary btn-lg" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
+                </div>
+                <div ng-if="!iHaveBackUpPDF">
+                    <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
+                </div>
             </div>
 
-            <div ng-if="iHaveBackUpPDF">
-                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
-            </div>
-            <div ng-if="!iHaveBackUpPDF">
-                <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="nextStep('login')">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
+            <div ng-show="CONFIG.NETWORK == 'BSV' || CONFIG.NETWORK == 'BCHA'">
+                <div ng-if="!CONFIG.LOGIN_BASED_RECOVERY">
+                    <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
+                </div>
+                <div ng-if="CONFIG.LOGIN_BASED_RECOVERY">
+                    <button class="btn btn btn-primary btn-lg" ng-disabled="!iHaveReplayProtectedMyself" ng-click="nextStep('login')">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
+                </div>
             </div>
         </div>
     </div>
