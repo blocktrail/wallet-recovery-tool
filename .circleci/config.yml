@@ -22,8 +22,9 @@ jobs:
               "EXTRACTION": false,
               "LOGIN_BASED_RECOVERY": true,
               "COSIGN_ENDPOINT": "signbsv",
-              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
-              "API_URL": "https://wallet-api.btc.com"
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "API_URL": "https://api.blocktrail.com",
+              "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
             EOF
 
@@ -60,8 +61,9 @@ jobs:
               "EXTRACTION": false,
               "LOGIN_BASED_RECOVERY": true,
               "COSIGN_ENDPOINT": "signbsv",
-              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
-              "API_URL": "https://wallet-api.btc.com"
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "API_URL": "https://api.blocktrail.com",
+              "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
             EOF
 
@@ -97,9 +99,10 @@ jobs:
               "RECOVER_BSV": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": true,
-              "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
               "COSIGN_ENDPOINT": "signbsv",
-              "API_URL": "https://wallet-api.btc.com"
+              "API_URL": "https://api.blocktrail.com",
+              "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
             EOF
 
@@ -176,7 +179,8 @@ jobs:
               "LOGIN_BASED_RECOVERY": true,
               "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
               "COSIGN_ENDPOINT": "signbsv",
-              "API_URL": "https://wallet-api.btc.com"
+              "API_URL": "https://api.blocktrail.com",
+              "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
             EOF
       - run: sudo npm install -g gulp@3.9.1
@@ -216,7 +220,8 @@ jobs:
               "LOGIN_BASED_RECOVERY": true,
               "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
               "COSIGN_ENDPOINT": "signbsv",
-              "API_URL": "https://wallet-api.btc.com"
+              "API_URL": "https://api.blocktrail.com",
+              "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
             EOF
       - run: sudo npm install -g gulp@3.9.1
