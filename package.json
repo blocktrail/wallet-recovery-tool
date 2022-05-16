@@ -17,7 +17,7 @@
     "gulp-sass": "^2.0.3",
     "gulp-template": "^3.0.0",
     "gulp-uglify": "^1.2.0",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.19",
     "node-notifier": "^4.2.1",
     "q": "^1.4.1",
     "strip-json-comments": "^1.0.4"
