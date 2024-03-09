@@ -605,7 +605,8 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
             }
         })
         .then(function() {
-            return self.bitcoinDataClient.estimateFee();
+            //return self.bitcoinDataClient.estimateFee();
+	    return 1000;
         })
         .then(function(feePerKb) {
             // Insight reports 1000 sat/kByte, but this is too low

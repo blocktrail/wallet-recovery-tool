@@ -57,13 +57,7 @@
     <div class="row" style="margin-top: 20px">
         <div class="col-xs-6 col-xs-offset-3 text-center">
             <div ng-show="CONFIG.NETWORK == 'BTC' || CONFIG.NETWORK == 'BCH'">
-                <input type="checkbox" ng-model="iHaveBackUpPDF"> I have my backup PDF<br>
-                <div ng-if="iHaveBackUpPDF">
-                    <button class="btn btn btn-primary btn-lg" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
-                </div>
-                <div ng-if="!iHaveBackUpPDF">
-                    <button class="btn btn btn-primary btn-lg" ng-click="nextStep('login')">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
-                </div>
+                <button class="btn btn btn-primary btn-lg" ng-click="goStep1()">Begin {{ CONFIG.EXTRACTION ? "Extraction" : "Recovery" }}</button>
             </div>
 
             <div ng-show="CONFIG.NETWORK == 'BSV' || CONFIG.NETWORK == 'BCHA'">
