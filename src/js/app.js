@@ -64,7 +64,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     $scope.subTemplate = "";
     $scope.forms = {};          //forms are used in directives with isolated scopes. need to keep them on this scope
     $scope.networks = [
-        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: true},
+        {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.cloverpool.com/inner/btccom/wallet/btc", recoverySheet: true},
         // {name: "Bitcoin Testnet", value: "tbtc", testnet: true, insightHost: "https://test-insight.bitpay.com/api", recoverySheet: true},
     ];
 
@@ -92,13 +92,13 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
     if (window.APPCONFIG.RECOVER_LITECOIN) {
         $scope.recoveryNetwork = {name: "Litecoin", value: "ltc", testnet: false, insightHost: "https://ltc-bitcore2.trezor.io/api", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCC) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bch", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash", value: "bcc", testnet: false, insightHost: "https://explorer.api.cloverpool.com/inner/btccom/wallet/bch", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BSV) {
-        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bsv", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin SV", value: "bcc", testnet: false, insightHost: "https://explorer.api.cloverpool.com/inner/btccom/wallet/bsv", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BCHA) {
-        $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/bcha", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin Cash ABC", value: "bcc", testnet: false, insightHost: "https://explorer.api.cloverpool.com/inner/btccom/wallet/bcha", recoverySheet: false};
     } else if (window.APPCONFIG.RECOVER_BTC) {
-        $scope.recoveryNetwork = {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.btc.com/inner/btccom/wallet/btc", recoverySheet: false};
+        $scope.recoveryNetwork = {name: "Bitcoin", value: "btc", testnet: false, insightHost: "https://explorer.api.cloverpool.com/inner/btccom/wallet/btc", recoverySheet: false};
     } else {
         $scope.recoveryNetwork = null;
     }
@@ -489,7 +489,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                     if (error.is_banned) {
                         return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btcm.group");
                     } else if (error.requires_sha512) {
-                        return alert("Please login on dev.btc.com/dev/login first to upgrade your account");
+                        return alert("Please login on dev.cloverpool.com/dev/login first to upgrade your account");
                     } else if (error instanceof blocktrailSDK.WalletMissing2FAError) {
                         $scope.loginData.twoFactorRequired = true;
                         $scope.loginData.error = "Two-factor Authentication required";
@@ -1066,7 +1066,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 });
                 bitcoinDataClient.client.sendRawTransaction(txData.hex)
                     .then(function(result) {
-                        $scope.alert({subtitle: "Success - Transaction relayed by BTC.com", message: "Your transaction hash is " + result.hash}, 'md');
+                        $scope.alert({subtitle: "Success", message: "Your transaction hash is " + result.hash}, 'md');
                         $scope.result.working = false;
                         $scope.recoveryComplete = true;
                     })

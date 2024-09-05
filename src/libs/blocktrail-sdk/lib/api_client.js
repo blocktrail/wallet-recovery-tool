@@ -202,7 +202,7 @@ APIClient.updateHostOptions = function(options) {
 
     if (options.btccom) {
         if (!options.host) {
-            options.host = options.btccomhost || (options.network === 'BCC' ? 'bch-chain.api.btc.com' : 'chain.api.btc.com');
+            options.host = options.btccomhost || (options.network === 'BCC' ? 'bch-chain.api.cloverpool.com' : 'chain.api.cloverpool.com');
         }
 
         if (options.testnet && !options.host.match(/tchain/)) {

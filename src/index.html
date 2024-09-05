@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="wallet-recovery">
 <head>
-    <title id="recovery-title">BTC.com - Wallet Recovery Tool</title>
+    <title id="recovery-title">Wallet Recovery Tool</title>
 
     <link rel="stylesheet" href="css/main.css?v=<%= VERSION %>">
 
@@ -13,7 +13,7 @@
 
         if (window.APPCONFIG.NETWORK_LONG) {
             var descTitle = window.APPCONFIG.EXTRACTION ? "Extraction": "Recovery";
-            $('#recovery-title').text("BTC.com - " + window.APPCONFIG.NETWORK_LONG + " " + descTitle +" Tool");
+            $('#recovery-title').text(window.APPCONFIG.NETWORK_LONG + " " + descTitle +" Tool");
         }
     </script>
 </head>

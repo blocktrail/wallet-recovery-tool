@@ -4673,7 +4673,7 @@ function callbackify(promise, cb) {
  * @param options       object{
  *                          apiKey: 'API_KEY',
  *                          apiSecret: 'API_SECRET',
- *                          host: 'defaults to wallet-api.btc.com',
+ *                          host: 'defaults to wallet-api.cloverpool.com',
  *                          network: 'BTC|LTC',
  *                          testnet: true|false
  *                      }
@@ -4795,7 +4795,7 @@ APIClient.updateHostOptions = function(options) {
 
     if (options.btccom) {
         if (!options.host) {
-            options.host = options.btccomhost || (options.network === 'BCC' ? 'bch-chain.api.btc.com' : 'chain.api.btc.com');
+            options.host = options.btccomhost || (options.network === 'BCC' ? 'bch-chain.api.cloverpool.com' : 'chain.api.cloverpool.com');
         }
 
         if (options.testnet && !options.host.match(/tchain/)) {
@@ -4807,7 +4807,7 @@ APIClient.updateHostOptions = function(options) {
         }
     } else {
         if (!options.host) {
-            options.host = 'wallet-api.btc.com';
+            options.host = 'wallet-api.cloverpool.com';
         }
 
         if (!options.endpoint) {

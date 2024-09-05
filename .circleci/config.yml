@@ -22,7 +22,7 @@ jobs:
               "EXTRACTION": false,
               "LOGIN_BASED_RECOVERY": true,
               "COSIGN_ENDPOINT": "signbsv",
-              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.cloverpool.com",
               "API_URL": "https://api.blocktrail.com",
               "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
@@ -61,7 +61,7 @@ jobs:
               "EXTRACTION": false,
               "LOGIN_BASED_RECOVERY": true,
               "COSIGN_ENDPOINT": "signbsv",
-              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.cloverpool.com",
               "API_URL": "https://api.blocktrail.com",
               "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
             }
@@ -98,7 +98,7 @@ jobs:
               "RECOVER_BSV": true,
               "RECOVER_BTG": false,
               "LOGIN_BASED_RECOVERY": true,
-              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.cloverpool.com",
               "COSIGN_ENDPOINT": "signbsv",
               "API_URL": "https://api.blocktrail.com",
               "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"
@@ -134,8 +134,8 @@ jobs:
                 "NETWORK": "BTG",
                 "NETWORK_LONG": "Bitcoin Gold",
                 "LOGIN_BASED_RECOVERY": false,
-                "RECOVERY_BACKEND": "https://wallet-recovery-backend.btc.com",
-                "API_URL": "https://wallet-api.btc.com",
+                "RECOVERY_BACKEND": "https://wallet-recovery-backend.cloverpool.com",
+                "API_URL": "https://wallet-api.cloverpool.com",
                 "GA_TRACKING_ID": "UA-66176065-31"
             }
             EOF
@@ -175,7 +175,7 @@ jobs:
               "RECOVER_BCHA": true,
               "EXTRACTION": false,
               "LOGIN_BASED_RECOVERY": true,
-              "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
+              "RECOVERY_BACKEND": "https://recovery-backend.cloverpool.com",
               "COSIGN_ENDPOINT": "signbsv",
               "API_URL": "https://api.blocktrail.com",
               "BLOCKTRAIL_SDK_HOST": "api.blocktrail.com"

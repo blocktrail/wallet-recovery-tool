@@ -8,7 +8,7 @@
     "RECOVER_BCHA": false,
     "RECOVER_BTG": false,
     "LOGIN_BASED_RECOVERY": true,
-    "RECOVERY_BACKEND": "https://recovery-backend.btc.com",
-    "API_URL": "https://wallet-api.btc.com",
+    "RECOVERY_BACKEND": "https://recovery-backend.cloverpool.com",
+    "API_URL": "https://wallet-api.cloverpool.com",
     "GOOGLE_RECAPTCHA_SITE_KEY": "6Lf6o7YZAAAAAHJu2vwVd-XQKZbTMxh0oA73pIa-"
 }
