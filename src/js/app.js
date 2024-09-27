@@ -441,7 +441,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                 // walletPassword = "bitcoin-abc-recovery";
 
                 /*if (walletIdentifier !== identifier && (window.APPCONFIG.RECOVER_BSV || window.APPCONFIG.EXTRACTION || window.APPCONFIG.RECOVER_BCHA)) {
-                    $scope.alert({subtitle: "Failed Login", message: "You have no permission, in order to use this tool, please contact support@btcm.group"}, 'md');
+                    $scope.alert({subtitle: "Failed Login", message: "You have no permission, in order to use this tool, please contact support@connectbtc.com"}, 'md');
                     throw new Error();
                 }*/
 
@@ -487,7 +487,7 @@ app.controller('walletRecoveryCtrl', function($scope, $q, $modal, $location, $ro
                     error = blocktrailSDK.Request.handleFailure(error.data);
 
                     if (error.is_banned) {
-                        return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@btcm.group");
+                        return alert("Your IP[" + error.is_banned + "] is blocked, please contact support@connectbtc.com");
                     } else if (error.requires_sha512) {
                         return alert("Please login on dev.cloverpool.com/dev/login first to upgrade your account");
                     } else if (error instanceof blocktrailSDK.WalletMissing2FAError) {
